@@ -52,22 +52,18 @@ fetch('ostatki.txt?v=' + Date.now())
   .then(r => r.arrayBuffer())
   .then(buf => {
     const bytes = new Uint8Array(buf);
-    // 1С v7.7 всегда пишет в Windows-1251 — декодируем сразу
+    // 1С v7.7 пишет в Windows-1251 — декодируем сразу
     const text = new TextDecoder('windows-1251').decode(bytes);
 
+    goods = parse(text);
+
+    // Ищем строку с датой обновления (если есть)
+    let updateTime = 'Дата обновления: не указана';
     const lines = text.split(/\r?\n/);
-    let dataLines = [];
-    let updateTime = '';
-
-    if (lines.length > 0 && lines[0].indexOf('Дата обновления') !== -1) {
-      updateTime = lines[0];
-      dataLines = lines.slice(1);
-    } else {
-      updateTime = 'Дата обновления: не указана';
-      dataLines = lines;
+    for (let l of lines) {
+      if (l.indexOf('Дата обновления') !== -1) { updateTime = l.trim(); break; }
+      if (l.indexOf('Остатки товаров') !== -1) { updateTime = l.trim(); break; }
     }
-
-    goods = parse(dataLines.join('\n'));
 
     document.getElementById('upd').textContent = updateTime;
     render('');
@@ -84,5 +80,74 @@ function parse(text) {
   for (let raw of lines) {
     if (!raw.trim()) continue;
 
-    const cols = raw.split('\t');
-    if (cols.length < 2) continue;
+    // Все числа в строке (целые и дробные): 1, 2, 200, 0.5, 1.00000000
+    const matches = raw.match(/-?\d+(?:\.\d+)?/g);
+    if (!matches || matches.length === 0) continue;
+
+    // Остаток — последнее число в строке
+    const num = parseFloat(matches[matches.length - 1]);
+    if (isNaN(num)) continue;
+
+    // Название — всё до последнего числа
+    const lastNum = matches[matches.length - 1];
+    const cutPos = raw.lastIndexOf(lastNum);
+    let name = raw.substring(0, cutPos).trim();
+
+    // Если название пустое — пробуем взять всю строку без последнего числа иначе
+    if (!name) continue;
+
+    // Отбрасываем служебные строки
+    if (name.indexOf('Остатки товаров') !== -1) continue;
+    if (name.indexOf('по всем складам') !== -1) continue;
+    if (name.indexOf('Итого') !== -1) continue;
+    if (name === 'Товар' || name.indexOf('Товар /') === 0) continue;
+    if (name.indexOf('Дата обновления') !== -1) continue;
+
+    result.push({ name: name, qty: num });
+  }
+  return result;
+}
+
+// Форматирование количества: 0.5 → 0,5 ; 2 → 2
+function fmt(n) {
+  const r = Math.round(n * 10) / 10;
+  return Number.isInteger(r) ? r.toString() : r.toString().replace('.', ',');
+}
+
+function render(query) {
+  const list = document.getElementById('list');
+  const count = document.getElementById('count');
+  query = (query || '').toLowerCase().trim();
+
+  // Показываем только товары с остатком > 0
+  let filtered = goods.filter(g => Math.round(g.qty * 10) / 10 > 0);
+
+  if (query) {
+    filtered = filtered.filter(g => g.name.toLowerCase().indexOf(query) !== -1);
+  }
+
+  count.textContent = 'Найдено: ' + filtered.length;
+
+  if (filtered.length === 0) {
+    list.innerHTML = '<div class="empty">Ничего не найдено</div>';
+    return;
+  }
+
+  let html = '';
+  for (let g of filtered) {
+    html += '<div class="item">' +
+              '<div class="name">' + escapeHtml(g.name) + '</div>' +
+              '<div class="qty in">' + fmt(g.qty) + ' шт</div>' +
+            '</div>';
+  }
+  list.innerHTML = html;
+}
+
+function escapeHtml(s) {
+  return s.replace(/&/g, '&amp;')
+          .replace(/</g, '&lt;')
+          .replace(/>/g, '&gt;');
+}
+</script>
+</body>
+</html>
