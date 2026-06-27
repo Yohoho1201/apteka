@@ -49,43 +49,34 @@ h1 { font-size: 20px; margin: 0; color: #1a7f37; }
 let goods = [];
 
 fetch('ostatki.txt?v=' + Date.now())
-  .then(r => r.text()) // Используем .text() для получения строки напрямую
-  .then(text => {
+  .then(r => r.arrayBuffer())              // читаем как байты
+  .then(buf => {
+    const bytes = new Uint8Array(buf);
+    let text;
+
+    // Сначала пробуем UTF-8 (строгий режим), если ошибка — значит файл в Windows-1251
+    try {
+      text = new TextDecoder('utf-8', { fatal: true }).decode(bytes);
+    } catch (e) {
+      text = new TextDecoder('windows-1251').decode(bytes);
+    }
+
     const lines = text.split(/\r?\n/);
     let dataLines = [];
     let updateTime = '';
 
-    if (lines.length > 0) {
-      let firstLine = lines[0];
-      // Попробуем исправить возможные проблемы с кодировкой в первой строке
-      if (firstLine.includes('') || firstLine.includes('') || firstLine.includes('') || firstLine.includes('')) {
-         try {
-           const bytes = new TextEncoder().encode(firstLine);
-           const correctedFirstLine = new TextDecoder('windows-1251').decode(bytes);
-           if (correctedFirstLine.startsWith('Дата обновления:')) {
-             firstLine = correctedFirstLine;
-           }
-         } catch (e) {
-           // Ошибка при попытке исправления, оставляем как есть
-         }
-      }
-
-      // Проверяем, начинается ли строка с "Дата обновления:"
-      if (firstLine.startsWith('Дата обновления:')) {
-        updateTime = firstLine;
-        dataLines = lines.slice(1); // Берем остальные строки как данные товаров
-      } else {
-        updateTime = 'Дата обновления: Не найдена';
-        dataLines = lines; // Считаем, что весь файл - это данные товаров
-      }
+    if (lines.length > 0 && lines[0].startsWith('Дата обновления:')) {
+      updateTime = lines[0];
+      dataLines = lines.slice(1);
     } else {
-      updateTime = 'Дата обновления: Файл пуст';
+      updateTime = 'Дата обновления: не указана';
+      dataLines = lines;
     }
 
-    goods = parse(dataLines.join('\n')); // Передаем данные товаров в функцию parse
+    goods = parse(dataLines.join('\n'));
 
-    document.getElementById('upd').textContent = updateTime; // Отображаем дату обновления
-    render(''); // Отображаем список товаров
+    document.getElementById('upd').textContent = updateTime;
+    render('');
   })
   .catch(error => {
     console.error("Error fetching or processing data:", error);
@@ -111,6 +102,7 @@ function parse(text) {
     if (name.indexOf('Карамзина') !== -1) continue;
     if (name.indexOf('Отдел') !== -1 && name.indexOf('Товар') !== -1) continue;
     if (name.indexOf('Итого') !== -1) continue;
+    if (name.indexOf('Итог') !== -1) continue;
 
     const lastCol = cols[cols.length - 1].trim();
     if (lastCol === '') continue;
@@ -159,4 +151,3 @@ function escapeHtml(s) {
 
 </body>
 </html>
-
