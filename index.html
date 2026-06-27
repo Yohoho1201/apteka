@@ -51,7 +51,15 @@ let goods = [];
 fetch('ostatki.txt')
   .then(r => r.arrayBuffer())
   .then(buf => {
-    const text = new TextDecoder('windows-1251').decode(buf);
+    const bytes = new Uint8Array(buf);
+    // Пробуем UTF-8 со строгой проверкой
+    let text;
+    try {
+      text = new TextDecoder('utf-8', { fatal: true }).decode(bytes);
+    } catch (e) {
+      // Если не UTF-8 — значит windows-1251
+      text = new TextDecoder('windows-1251').decode(bytes);
+    }
     goods = parse(text);
     document.getElementById('upd').textContent =
       'Товаров в наличии: ' + goods.filter(g => g.qty > 0).length;
