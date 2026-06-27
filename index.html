@@ -49,21 +49,66 @@ h1 { font-size: 20px; margin: 0; color: #1a7f37; }
 let goods = [];
 
 fetch('ostatki.txt?v=' + Date.now())
-  .then(r => r.arrayBuffer())
-  .then(buf => {
-    const bytes = new Uint8Array(buf);
-    let text;
-    try {
-      text = new TextDecoder('utf-8', { fatal: true }).decode(bytes);
-    } catch (e) {
-      text = new TextDecoder('windows-1251').decode(bytes);
+  .then(r => r.text()) // Меняем с .arrayBuffer() на .text()
+  .then(text => {
+    // Теперь text уже будет содержать строку в правильной кодировке,
+    // если файл на сервере сохранен в UTF-8.
+    // Если все равно кракозябры, то проблема точно в кодировке файла.
+
+    const lines = text.split(/\r?\n/);
+    let dataLines = [];
+    let updateTime = '';
+
+    // Проверяем, начинается ли первая строка с "Дата обновления:"
+    // и если она содержит "кракозябры", пробуем ее исправить.
+    if (lines.length > 0) {
+      let firstLine = lines[0];
+      // Попытка исправить возможные кракозябры в первой строке
+      // Проверяем на наличие типичных "кракозябр"
+      if (firstLine.includes('') || firstLine.includes('') || firstLine.includes('') || firstLine.includes('')) {
+         try {
+           // Если есть подозрение на Windows-1251, пробуем декодировать
+           const bytes = new TextEncoder().encode(firstLine); // Кодируем текущую строку
+           const correctedFirstLine = new TextDecoder('windows-1251').decode(bytes); // Декодируем как windows-1251
+
+           // Проверяем, начинается ли исправленная строка с "Дата обновления:"
+           if (correctedFirstLine.startsWith('Дата обновления:')) {
+             firstLine = correctedFirstLine; // Используем исправленную строку
+           }
+         } catch (e) {
+           // Ошибка при попытке исправить, оставляем как есть.
+           // В консоли браузера (F12 -> Console) можно увидеть ошибку, если она будет.
+         }
+      }
+
+      // Теперь проверяем, начинается ли (возможно, исправленная) первая строка с "Дата обновления:"
+      if (firstLine.startsWith('Дата обновления:')) {
+        updateTime = firstLine;
+        dataLines = lines.slice(1); // Берем все строки, кроме первой, для данных товаров
+        // Дополнительная проверка на всякий случай, если кракозябры остались
+        if (updateTime.includes('') || updateTime.includes('')) {
+          updateTime = 'Дата обновления: Ошибка кодировки';
+        }
+      } else {
+        // Если первая строка не началась с "Дата обновления:", считаем, что это данные товаров
+        updateTime = 'Дата обновления: Не найдена';
+        dataLines = lines; // Используем все строки как данные товаров
+      }
+    } else {
+      // Если файл пустой
+      updateTime = 'Дата обновления: Файл пуст';
     }
-    goods = parse(text);
-    document.getElementById('upd').textContent =
-      'Товаров в наличии: ' + goods.filter(g => g.qty > 0).length;
-    render('');
+
+    // Передаем данные товаров в функцию parse
+    goods = parse(dataLines.join('\n'));
+
+    // Отображаем время обновления (или сообщение об ошибке/отсутствии)
+    document.getElementById('upd').textContent = updateTime;
+    render(''); // Отображаем список товаров
   })
-  .catch(() => {
+  .catch(error => {
+    // Если произошла ошибка при загрузке файла
+    console.error("Error fetching or processing data:", error); // Логируем ошибку для отладки
     document.getElementById('upd').textContent =
       '⚠ Не удалось загрузить ostatki.txt';
   });
@@ -81,11 +126,13 @@ function parse(text) {
     const name = cols[0].trim();
     if (!name) continue;
 
+    // Фильтры шапки/итогов
     if (name.indexOf('Остатки товаров') !== -1) continue;
     if (name.indexOf('По всем складам') !== -1) continue;
     if (name.indexOf('Карамзина') !== -1) continue;
     if (name.indexOf('Отдел') !== -1 && name.indexOf('Товар') !== -1) continue;
     if (name.indexOf('Итого') !== -1) continue;
+
 
     const lastCol = cols[cols.length - 1].trim();
     if (lastCol === '') continue;
