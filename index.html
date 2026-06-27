@@ -73,15 +73,36 @@ fetch('ostatki.txt?v=' + Date.now())
 function parse(text) {
   const lines = text.split(/\r?\n/);
   const result = [];
-  for (let line of lines) {
-    line = line.trim();
-    if (!line) continue;
 
-    const nums = [];
-    let m;
-    while ((m = line.match(/\s+(\d+[.,]\d+|\d+)$/)) !== null) {
-      nums.unshift(m[1]);
-      line = line.slice(0, m.index).trimEnd();
+  for (let raw of lines) {
+    if (!raw.trim()) continue;
+
+    // делим строго по табам
+    const cols = raw.split('\t');
+    if (cols.length < 2) continue;
+
+    const name = cols[0].trim();
+    if (!name) continue;
+
+    // фильтры шапки/итогов
+    if (name.indexOf('Остатки товаров') !== -1) continue;
+    if (name.indexOf('По всем складам') !== -1) continue;
+    if (name.indexOf('Карамзина') !== -1) continue;
+    if (name.indexOf('Отдел') !== -1 && name.indexOf('Товар') !== -1) continue;
+    if (name.indexOf('Итого') !== -1) continue;
+
+    // КОНЕЧНЫЙ ОСТАТОК = последняя НЕ пустая колонка с числом
+    const lastCol = cols[cols.length - 1].trim();
+    if (lastCol === '') continue;
+
+    const num = parseFloat(lastCol.replace(',', '.'));
+    if (isNaN(num)) continue;
+
+    result.push({ name: name, qty: num });
+  }
+  return result;
+}
+
     }
 
     const name = line.trim();
