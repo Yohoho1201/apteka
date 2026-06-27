@@ -49,23 +49,17 @@ h1 { font-size: 20px; margin: 0; color: #1a7f37; }
 let goods = [];
 
 fetch('ostatki.txt?v=' + Date.now())
-  .then(r => r.arrayBuffer())              // читаем как байты
+  .then(r => r.arrayBuffer())
   .then(buf => {
     const bytes = new Uint8Array(buf);
-    let text;
-
-    // Сначала пробуем UTF-8 (строгий режим), если ошибка — значит файл в Windows-1251
-    try {
-      text = new TextDecoder('utf-8', { fatal: true }).decode(bytes);
-    } catch (e) {
-      text = new TextDecoder('windows-1251').decode(bytes);
-    }
+    // 1С v7.7 всегда пишет в Windows-1251 — декодируем сразу
+    const text = new TextDecoder('windows-1251').decode(bytes);
 
     const lines = text.split(/\r?\n/);
     let dataLines = [];
     let updateTime = '';
 
-    if (lines.length > 0 && lines[0].startsWith('Дата обновления:')) {
+    if (lines.length > 0 && lines[0].indexOf('Дата обновления') !== -1) {
       updateTime = lines[0];
       dataLines = lines.slice(1);
     } else {
@@ -79,7 +73,7 @@ fetch('ostatki.txt?v=' + Date.now())
     render('');
   })
   .catch(error => {
-    console.error("Error fetching or processing data:", error);
+    console.error("Ошибка загрузки:", error);
     document.getElementById('upd').textContent = '⚠ Не удалось загрузить ostatki.txt';
   });
 
@@ -92,62 +86,3 @@ function parse(text) {
 
     const cols = raw.split('\t');
     if (cols.length < 2) continue;
-
-    const name = cols[0].trim();
-    if (!name) continue;
-
-    // Фильтры шапки/итогов
-    if (name.indexOf('Остатки товаров') !== -1) continue;
-    if (name.indexOf('По всем складам') !== -1) continue;
-    if (name.indexOf('Карамзина') !== -1) continue;
-    if (name.indexOf('Отдел') !== -1 && name.indexOf('Товар') !== -1) continue;
-    if (name.indexOf('Итого') !== -1) continue;
-    if (name.indexOf('Итог') !== -1) continue;
-
-    const lastCol = cols[cols.length - 1].trim();
-    if (lastCol === '') continue;
-
-    const num = parseFloat(lastCol.replace(',', '.'));
-    if (isNaN(num)) continue;
-
-    result.push({ name: name, qty: num });
-  }
-  return result;
-}
-
-function fmt(n) {
-  return Number.isInteger(n) ? n.toString() : n.toString().replace('.', ',');
-}
-
-function render(query) {
-  const q = (query || '').trim().toLowerCase();
-  const list = document.getElementById('list');
-  const count = document.getElementById('count');
-
-  let filtered = goods.filter(g => g.qty > 0);
-  if (q) filtered = filtered.filter(g => g.name.toLowerCase().indexOf(q) !== -1);
-
-  count.textContent = 'Показано: ' + filtered.length;
-
-  if (filtered.length === 0) {
-    list.innerHTML = '<div class="empty">Ничего не найдено</div>';
-    return;
-  }
-
-  let html = '';
-  for (const g of filtered) {
-    html += '<div class="item">' +
-      '<span class="name">' + escapeHtml(g.name) + '</span>' +
-      '<span class="qty in">' + fmt(g.qty) + ' шт</span>' +
-      '</div>';
-  }
-  list.innerHTML = html;
-}
-
-function escapeHtml(s) {
-  return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
-}
-</script>
-
-</body>
-</html>
