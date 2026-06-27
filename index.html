@@ -48,7 +48,7 @@ h1 { font-size: 20px; margin: 0; color: #1a7f37; }
 <script>
 let goods = [];
 
-fetch('ostatki.txt')
+fetch('ostatki.txt?v=' + Date.now())
   .then(r => r.arrayBuffer())
   .then(buf => {
     const bytes = new Uint8Array(buf);
