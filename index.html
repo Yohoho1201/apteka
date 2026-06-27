@@ -52,12 +52,10 @@ fetch('ostatki.txt?v=' + Date.now())
   .then(r => r.arrayBuffer())
   .then(buf => {
     const bytes = new Uint8Array(buf);
-    // Пробуем UTF-8 со строгой проверкой
     let text;
     try {
       text = new TextDecoder('utf-8', { fatal: true }).decode(bytes);
     } catch (e) {
-      // Если не UTF-8 — значит windows-1251
       text = new TextDecoder('windows-1251').decode(bytes);
     }
     goods = parse(text);
@@ -77,44 +75,22 @@ function parse(text) {
   for (let raw of lines) {
     if (!raw.trim()) continue;
 
-    // делим строго по табам
     const cols = raw.split('\t');
     if (cols.length < 2) continue;
 
     const name = cols[0].trim();
     if (!name) continue;
 
-    // фильтры шапки/итогов
     if (name.indexOf('Остатки товаров') !== -1) continue;
     if (name.indexOf('По всем складам') !== -1) continue;
     if (name.indexOf('Карамзина') !== -1) continue;
     if (name.indexOf('Отдел') !== -1 && name.indexOf('Товар') !== -1) continue;
     if (name.indexOf('Итого') !== -1) continue;
 
-    // КОНЕЧНЫЙ ОСТАТОК = последняя НЕ пустая колонка с числом
     const lastCol = cols[cols.length - 1].trim();
     if (lastCol === '') continue;
 
     const num = parseFloat(lastCol.replace(',', '.'));
-    if (isNaN(num)) continue;
-
-    result.push({ name: name, qty: num });
-  }
-  return result;
-}
-
-    }
-
-    const name = line.trim();
-    if (!name) continue;
-    if (nums.length === 0) continue;
-    if (name.indexOf('Отдел') !== -1 && name.indexOf('Товар') !== -1) continue;
-    if (name.indexOf('Остатки товаров') !== -1) continue;
-    if (name.indexOf('По всем складам') !== -1) continue;
-    if (name.indexOf('Карамзина') !== -1) continue;
-
-    const last = nums[nums.length - 1];
-    const num = parseFloat(last.replace(',', '.'));
     if (isNaN(num)) continue;
 
     result.push({ name: name, qty: num });
