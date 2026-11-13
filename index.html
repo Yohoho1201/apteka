@@ -47,18 +47,16 @@ body {
   z-index: 1;
 }
 
-/* Зимняя шапка с эффектом морозного стекла */
+/* Зимняя шапка */
 .header {
   display: flex;
   align-items: center;
   gap: 14px;
   margin-bottom: 10px;
-  background: rgba(255, 255, 255, 0.85);
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
-  padding: 14px 18px;
+  background: #ffffff;
+  padding: 12px 18px;
   border-radius: 16px;
-  border: 1px solid rgba(255, 255, 255, 0.9);
+  border: 1px solid #e0f2fe;
   box-shadow: 0 4px 18px rgba(14, 116, 144, 0.08);
   position: relative;
   overflow: hidden;
@@ -74,23 +72,16 @@ body {
   pointer-events: none;
 }
 .header img {
-  height: 54px;
+  height: 56px;
   width: auto;
-  border-radius: 10px;
-  box-shadow: 0 2px 8px rgba(212, 18, 92, 0.2);
+  display: block;
+  mix-blend-mode: multiply; /* делает белый фон вокруг логотипа прозрачным */
 }
-.title-block { display: flex; flex-direction: column; }
 h1 {
   font-size: 21px;
   margin: 0;
   color: #0c4a6e;
   letter-spacing: -0.2px;
-}
-.winter-sub {
-  font-size: 12px;
-  color: #d4125c;
-  font-weight: 600;
-  margin-top: 2px;
 }
 
 .upd {
@@ -180,10 +171,7 @@ h1 {
 <div class="content-wrap">
   <div class="header">
     <img src="logo.png" alt="logo" onerror="this.style.display='none'">
-    <div class="title-block">
-      <h1>Аптека «Вита Ботаника»</h1>
-      <div class="winter-sub">❄️ Зимний сезон — актуальное наличие</div>
-    </div>
+    <h1>Аптека «Вита Ботаника»</h1>
   </div>
   <div class="upd" id="upd">❄️ Загрузка данных…</div>
 
