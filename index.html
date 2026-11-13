@@ -62,13 +62,13 @@ body {
   position: relative;
 }
 
-/* Приподняли сугроб над шапкой еще выше */
+/* Финальная точная регулировка сугроба над шапкой */
 .header-snow-cap {
   position: absolute;
-  top: -36px; /* Подняли выше */
+  top: -42px; /* Подняли еще на 6 пикселей */
   left: 6px;
   right: 6px;
-  height: 42px;
+  height: 46px;
   z-index: 4;
   background-size: 100% 100%;
   background-position: bottom center;
@@ -164,13 +164,13 @@ h1 {
   margin-bottom: 4px;
 }
 
-/* Приподняли сугроб над поиском еще выше */
+/* Финальная точная регулировка сугроба над поиском */
 .search-snow-cap {
   position: absolute;
-  top: -26px; /* Подняли выше */
+  top: -33px; /* Подняли еще на 7 пикселей */
   left: 10px;
   right: 10px;
-  height: 32px;
+  height: 36px;
   z-index: 5;
   background-size: 100% 100%;
   background-position: bottom center;
@@ -274,12 +274,12 @@ h1 {
     height: 95px;
   }
   .header-snow-cap {
-    top: -26px;
-    height: 32px;
+    top: -30px;
+    height: 35px;
   }
   .search-snow-cap {
-    top: -20px;
-    height: 24px;
+    top: -24px;
+    height: 27px;
   }
 }
 </style>
@@ -316,10 +316,10 @@ h1 {
 
 <script>
 // Автоматическая очистка кэша для применения новых отступов сугробов
-if (localStorage.getItem('vb_fix_v4') !== 'true') {
-  localStorage.removeItem('vb_cap1_v3');
-  localStorage.removeItem('vb_cap2_v3');
-  localStorage.setItem('vb_fix_v4', 'true');
+if (localStorage.getItem('vb_fix_v5') !== 'true') {
+  localStorage.removeItem('vb_cap1_v4');
+  localStorage.removeItem('vb_cap2_v4');
+  localStorage.setItem('vb_fix_v5', 'true');
 }
 
 // Загрузка ёлочки
@@ -368,8 +368,8 @@ if (localStorage.getItem('vb_fix_v4') !== 'true') {
 // Вырезка верхних сугробов
 (function processTopSnowImage() {
   try {
-    const cached1 = localStorage.getItem('vb_cap1_v4');
-    const cached2 = localStorage.getItem('vb_cap2_v4');
+    const cached1 = localStorage.getItem('vb_cap1_v5');
+    const cached2 = localStorage.getItem('vb_cap2_v5');
     if (cached1 && cached2) {
       document.getElementById('headerSnowCap').style.backgroundImage = 'url(' + cached1 + ')';
       document.getElementById('searchSnowCap').style.backgroundImage = 'url(' + cached2 + ')';
@@ -456,8 +456,8 @@ if (localStorage.getItem('vb_fix_v4') !== 'true') {
       if (cap2) document.getElementById('searchSnowCap').style.backgroundImage = 'url(' + cap2 + ')';
 
       try {
-        if (cap1) localStorage.setItem('vb_cap1_v4', cap1);
-        if (cap2) localStorage.setItem('vb_cap2_v4', cap2);
+        if (cap1) localStorage.setItem('vb_cap1_v5', cap1);
+        if (cap2) localStorage.setItem('vb_cap2_v5', cap2);
       } catch (e) {}
     };
     img.onerror = function() {
