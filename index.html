@@ -8,44 +8,209 @@
 * { box-sizing: border-box; }
 body {
   font-family: -apple-system, Segoe UI, Roboto, Arial, sans-serif;
-  max-width: 800px; margin: 0 auto; padding: 16px;
-  background: #f5f7fa; color: #222;
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 16px;
+  background: linear-gradient(180deg, #dceefb 0%, #eff6fc 45%, #f8fbff 100%);
+  background-attachment: fixed;
+  color: #1e293b;
+  position: relative;
+  min-height: 100vh;
 }
-.header { display: flex; align-items: center; gap: 12px; margin-bottom: 8px; }
-.header img { height: 52px; width: auto; }
-h1 { font-size: 20px; margin: 0; color: #1a7f37; }
-.upd { color: #888; font-size: 13px; margin-bottom: 16px; }
+
+/* Фоновый снегопад */
+.snow-container {
+  position: fixed;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
+  pointer-events: none;
+  z-index: 0;
+  overflow: hidden;
+}
+.snowflake {
+  position: fixed;
+  top: -10%;
+  color: #ffffff;
+  text-shadow: 0 0 6px rgba(14, 116, 144, 0.35);
+  user-select: none;
+  pointer-events: none;
+  animation: snowfall linear infinite;
+}
+@keyframes snowfall {
+  0% { transform: translateY(-10vh) translateX(0) rotate(0deg); }
+  50% { transform: translateY(50vh) translateX(15px) rotate(180deg); }
+  100% { transform: translateY(110vh) translateX(-15px) rotate(360deg); }
+}
+
+.content-wrap {
+  position: relative;
+  z-index: 1;
+}
+
+/* Зимняя шапка с эффектом морозного стекла */
+.header {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 10px;
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  padding: 14px 18px;
+  border-radius: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.9);
+  box-shadow: 0 4px 18px rgba(14, 116, 144, 0.08);
+  position: relative;
+  overflow: hidden;
+}
+.header::after {
+  content: "❄️";
+  position: absolute;
+  right: 16px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 26px;
+  opacity: 0.25;
+  pointer-events: none;
+}
+.header img {
+  height: 54px;
+  width: auto;
+  border-radius: 10px;
+  box-shadow: 0 2px 8px rgba(212, 18, 92, 0.2);
+}
+.title-block { display: flex; flex-direction: column; }
+h1 {
+  font-size: 21px;
+  margin: 0;
+  color: #0c4a6e;
+  letter-spacing: -0.2px;
+}
+.winter-sub {
+  font-size: 12px;
+  color: #d4125c;
+  font-weight: 600;
+  margin-top: 2px;
+}
+
+.upd {
+  color: #475569;
+  font-size: 13px;
+  margin-bottom: 14px;
+  padding-left: 4px;
+}
+
 #search {
-  width: 100%; padding: 14px 16px; font-size: 17px;
-  border: 2px solid #cfd8e3; border-radius: 10px; outline: none;
+  width: 100%;
+  padding: 14px 16px;
+  font-size: 17px;
+  background: rgba(255, 255, 255, 0.92);
+  border: 2px solid #bae6fd;
+  border-radius: 12px;
+  outline: none;
+  box-shadow: 0 4px 12px rgba(2, 132, 199, 0.06);
+  transition: all 0.2s ease;
 }
-#search:focus { border-color: #2d7ff9; }
-.count { color: #888; font-size: 13px; margin: 12px 2px; }
+#search:focus {
+  border-color: #0284c7;
+  background: #ffffff;
+  box-shadow: 0 0 0 4px rgba(2, 132, 199, 0.15);
+}
+
+.count {
+  color: #475569;
+  font-size: 13px;
+  margin: 12px 4px;
+  font-weight: 500;
+}
+
 .item {
-  display: flex; justify-content: space-between; align-items: center;
-  background: #fff; padding: 12px 14px; margin-bottom: 8px;
-  border-radius: 10px; box-shadow: 0 1px 3px rgba(0,0,0,.06);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: rgba(255, 255, 255, 0.94);
+  padding: 12px 16px;
+  margin-bottom: 8px;
+  border-radius: 12px;
+  border: 1px solid #e0f2fe;
+  box-shadow: 0 2px 6px rgba(15, 23, 42, 0.04);
+  transition: transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease;
 }
-.name { flex: 1; padding-right: 12px; }
-.qty { white-space: nowrap; font-weight: 600; padding: 4px 10px; border-radius: 20px; }
-.in { background: #e3f7e8; color: #1a7f37; }
-.out { background: #fdecec; color: #c0392b; }
-.empty { text-align: center; color: #999; padding: 30px; }
+.item:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 5px 14px rgba(2, 132, 199, 0.1);
+  border-color: #bae6fd;
+}
+
+.name {
+  flex: 1;
+  padding-right: 12px;
+  line-height: 1.35;
+}
+.qty {
+  white-space: nowrap;
+  font-weight: 600;
+  padding: 5px 12px;
+  border-radius: 20px;
+  font-size: 14px;
+}
+.in {
+  background: #e0f2fe;
+  color: #0369a1;
+  border: 1px solid #bae6fd;
+}
+.out {
+  background: #fdecec;
+  color: #c0392b;
+}
+.empty {
+  text-align: center;
+  color: #64748b;
+  padding: 36px;
+  background: rgba(255, 255, 255, 0.7);
+  border-radius: 12px;
+  border: 1px dashed #cbd5e1;
+}
 </style>
 </head>
 <body>
 
-<div class="header">
-  <img src="logo.png" alt="logo" onerror="this.style.display='none'">
-  <h1>Аптека «Вита Ботаника»</h1>
-</div>
-<div class="upd" id="upd">Загрузка данных…</div>
+<div class="snow-container" id="snow"></div>
 
-<input type="text" id="search" placeholder="🔍 Поиск товара…" oninput="render(this.value)">
-<div class="count" id="count"></div>
-<div id="list"></div>
+<div class="content-wrap">
+  <div class="header">
+    <img src="logo.png" alt="logo" onerror="this.style.display='none'">
+    <div class="title-block">
+      <h1>Аптека «Вита Ботаника»</h1>
+      <div class="winter-sub">❄️ Зимний сезон — актуальное наличие</div>
+    </div>
+  </div>
+  <div class="upd" id="upd">❄️ Загрузка данных…</div>
+
+  <input type="text" id="search" placeholder="🔍 Поиск товара…" oninput="render(this.value)">
+  <div class="count" id="count"></div>
+  <div id="list"></div>
+</div>
 
 <script>
+// Генерация легкого снегопада
+(function createSnow() {
+  const container = document.getElementById('snow');
+  const symbols = ['❄', '❅', '❆', '•'];
+  const count = 28;
+  for (let i = 0; i < count; i++) {
+    const flake = document.createElement('div');
+    flake.className = 'snowflake';
+    flake.textContent = symbols[i % symbols.length];
+    flake.style.left = (Math.random() * 100) + 'vw';
+    flake.style.fontSize = (Math.random() * 12 + 10) + 'px';
+    flake.style.opacity = (Math.random() * 0.55 + 0.25).toFixed(2);
+    flake.style.animationDuration = (Math.random() * 10 + 9) + 's';
+    flake.style.animationDelay = (Math.random() * 10) + 's';
+    container.appendChild(flake);
+  }
+})();
+
 let goods = [];
 
 fetch('ostatki.txt?v=' + Date.now())
@@ -65,7 +230,7 @@ fetch('ostatki.txt?v=' + Date.now())
       if (l.indexOf('Остатки товаров') !== -1) { updateTime = l.trim(); break; }
     }
 
-    document.getElementById('upd').textContent = updateTime;
+    document.getElementById('upd').textContent = '❄️ ' + updateTime;
     render('');
   })
   .catch(error => {
@@ -129,7 +294,7 @@ function render(query) {
   count.textContent = 'Найдено: ' + filtered.length;
 
   if (filtered.length === 0) {
-    list.innerHTML = '<div class="empty">Ничего не найдено</div>';
+    list.innerHTML = '<div class="empty">❄️ Ничего не найдено</div>';
     return;
   }
 
