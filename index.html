@@ -120,7 +120,6 @@ h1 {
   filter: drop-shadow(0 3px 5px rgba(12, 74, 110, 0.18));
 }
 
-/* Мягкое праздничное мерцание огоньков на елке */
 .tree-box::after {
   content: "✨";
   position: absolute;
@@ -298,7 +297,6 @@ h1 {
       <h1>Аптека «Вита Ботаника»</h1>
     </div>
 
-    <!-- Новая нарядная праздничная ёлочка -->
     <div class="tree-box" title="С зимними праздниками!">
       <div class="tree-image-container" id="christmasTree"></div>
     </div>
@@ -317,7 +315,14 @@ h1 {
 <div class="snowdrifts-bottom" id="snowdrifts"></div>
 
 <script>
-// Быстрая загрузка и бесшовная вырезка новой ёлочки из christmastree.png (белый фон удаляется на 100%)
+// Автоматическая очистка кэша для обновления исправленных сугробов
+if (localStorage.getItem('vb_fix_v2') !== 'true') {
+  localStorage.removeItem('vb_cap1_v1');
+  localStorage.removeItem('vb_cap2_v1');
+  localStorage.setItem('vb_fix_v2', 'true');
+}
+
+// Загрузка ёлочки
 (function processChristmasTree() {
   try {
     const cachedTree = localStorage.getItem('vb_christmastree_v1');
@@ -330,7 +335,7 @@ h1 {
   const img = new Image();
   img.crossOrigin = 'anonymous';
   img.onload = function() {
-    const w = 150; // Компактное разрешение для экономии памяти
+    const w = 150;
     const h = Math.round((img.height / img.width) * w);
     const canvas = document.createElement('canvas');
     canvas.width = w;
@@ -341,12 +346,11 @@ h1 {
     const imgData = ctx.getImageData(0, 0, w, h);
     const d = imgData.data;
 
-    // Удаляем белый и очень светлый фон (r, g, b > 235 и близки друг к другу)
     for (let i = 0; i < d.length; i += 4) {
       const r = d[i], g = d[i+1], b = d[i+2];
       const maxDiff = Math.max(Math.abs(r-g), Math.abs(g-b), Math.abs(b-r));
       if (r > 232 && g > 232 && b > 232 && maxDiff < 14) {
-        d[i+3] = 0; // Полная прозрачность
+        d[i+3] = 0;
       }
     }
 
@@ -358,20 +362,14 @@ h1 {
       localStorage.setItem('vb_christmastree_v1', dataUrl);
     } catch (e) {}
   };
-  img.onerror = function() {
-    // Резервная попытка загрузить .jpg
-    if (img.src.indexOf('.png') !== -1) {
-      img.src = 'christmastree.jpg';
-    }
-  };
   img.src = 'christmastree.png';
 })();
 
-// Вырезание и очистка от сетки двух верхних сугробов из top-snow.png
+// Исправленная вырезка верхних сугробов без шахматной сетки снизу
 (function processTopSnowImage() {
   try {
-    const cached1 = localStorage.getItem('vb_cap1_v1');
-    const cached2 = localStorage.getItem('vb_cap2_v1');
+    const cached1 = localStorage.getItem('vb_cap1_v2');
+    const cached2 = localStorage.getItem('vb_cap2_v2');
     if (cached1 && cached2) {
       document.getElementById('headerSnowCap').style.backgroundImage = 'url(' + cached1 + ')';
       document.getElementById('searchSnowCap').style.backgroundImage = 'url(' + cached2 + ')';
@@ -387,7 +385,7 @@ h1 {
     const img = new Image();
     img.crossOrigin = 'anonymous';
     img.onload = function() {
-      const scale = Math.min(1, 800 / img.width);
+      const scale = Math.min(1, 900 / img.width);
       const w = Math.round(img.width * scale);
       const h = Math.round(img.height * scale);
 
@@ -407,7 +405,11 @@ h1 {
 
         const isSnow = function(idx) {
           const r = d[idx], g = d[idx + 1], b = d[idx + 2];
-          return (b - r >= 6) || (r > 185 && g > 190 && b > 195);
+          // Отсекаем нейтрально-серые пиксели сетки (где r, g, b равны или почти равны и темнее 220)
+          const max = Math.max(r, g, b);
+          const min = Math.min(r, g, b);
+          if ((max - min < 12) && r < 215) return false;
+          return (b - r >= 5) || (r > 180 && g > 185 && b > 190);
         };
 
         for (let x = 0; x < w; x++) {
@@ -448,15 +450,16 @@ h1 {
         return out.toDataURL('image/png');
       }
 
-      const cap1 = extractSnowCap(0.08, 0.50);
-      const cap2 = extractSnowCap(0.60, 0.83);
+      // Сдвинули диапазон нижнего сугроба чуть выше, чтобы исключить рамку с сеткой
+      const cap1 = extractSnowCap(0.08, 0.45);
+      const cap2 = extractSnowCap(0.55, 0.76);
 
       if (cap1) document.getElementById('headerSnowCap').style.backgroundImage = 'url(' + cap1 + ')';
       if (cap2) document.getElementById('searchSnowCap').style.backgroundImage = 'url(' + cap2 + ')';
 
       try {
-        if (cap1) localStorage.setItem('vb_cap1_v1', cap1);
-        if (cap2) localStorage.setItem('vb_cap2_v1', cap2);
+        if (cap1) localStorage.setItem('vb_cap1_v2', cap1);
+        if (cap2) localStorage.setItem('vb_cap2_v2', cap2);
       } catch (e) {}
     };
     img.onerror = function() {
@@ -469,7 +472,7 @@ h1 {
   loadNext();
 })();
 
-// Автоматическое удаление серо-белой шахматной сетки с нижней картинки snowdrifts.png
+// Нижние сугробы
 (function cleanAndRenderSnowdrifts() {
   try {
     const cachedBottom = localStorage.getItem('vb_bottom_snow_v1');
@@ -548,7 +551,7 @@ h1 {
   img.src = 'snowdrifts.png';
 })();
 
-// Генерация снегопада
+// Снегопад
 (function createSnow() {
   const container = document.getElementById('snow');
   const symbols = ['❄', '❅', '❆', '•'];
@@ -570,7 +573,6 @@ h1 {
 
 let goods = [];
 
-// У прайса оставляем ?v=Date.now(), чтобы остатки всегда загружались самые свежие
 fetch('ostatki.txt?v=' + Date.now())
   .then(r => r.arrayBuffer())
   .then(buf => {
