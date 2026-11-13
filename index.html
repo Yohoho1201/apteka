@@ -10,7 +10,7 @@ body {
   font-family: -apple-system, Segoe UI, Roboto, Arial, sans-serif;
   max-width: 800px;
   margin: 0 auto;
-  padding: 24px 16px 140px 16px; /* увеличено нижнее поле под картинку */
+  padding: 24px 16px 135px 16px;
   background: linear-gradient(180deg, #d8ecfc 0%, #eef7ff 50%, #f8fbff 100%);
   background-attachment: fixed;
   color: #1e293b;
@@ -47,7 +47,7 @@ body {
   z-index: 2;
 }
 
-/* Зимняя шапка с сугробами сверху и ёлкой */
+/* Зимняя шапка с голубоватыми сугробами сверху и ёлкой */
 .header {
   display: flex;
   align-items: center;
@@ -89,7 +89,7 @@ body {
   height: 56px;
   width: auto;
   display: block;
-  mix-blend-mode: multiply; /* делает белый фон вокруг логотипа прозрачным */
+  mix-blend-mode: multiply;
 }
 
 h1 {
@@ -115,7 +115,6 @@ h1 {
   filter: drop-shadow(0 3px 5px rgba(12, 74, 110, 0.14));
 }
 
-/* Мерцание огоньков на ёлке */
 @keyframes twinkle {
   0%, 100% { opacity: 1; transform: scale(1); }
   50% { opacity: 0.45; transform: scale(0.85); }
@@ -224,17 +223,37 @@ h1 {
   border: 1px dashed #93c5fd;
 }
 
-/* Нижние художественные сугробы из картинки */
-.snowdrifts-bottom {
+/* Нижняя художественная панорама с объёмными сугробами и елями (без фона/сетки) */
+.winter-scene-bottom {
   position: fixed;
   bottom: 0;
   left: 0;
   width: 100%;
-  height: 110px; /* высота нашей панорамы */
+  height: 115px;
   pointer-events: none;
   z-index: 3;
-  background: url('snowdrifts.png') bottom center no-repeat;
-  background-size: cover; /* чтобы плавно растягивалось на весь экран */
+  display: flex;
+  align-items: flex-end;
+}
+.hills-svg {
+  width: 100%;
+  height: 90px;
+  display: block;
+}
+.corner-trees {
+  position: fixed;
+  bottom: 8px;
+  height: 105px;
+  width: auto;
+  pointer-events: none;
+  z-index: 4;
+}
+.corner-trees.left { left: 10px; }
+.corner-trees.right { right: 10px; transform: scaleX(-1); }
+
+@media (max-width: 600px) {
+  .corner-trees { height: 78px; bottom: 6px; }
+  .hills-svg { height: 68px; }
 }
 </style>
 </head>
@@ -252,23 +271,16 @@ h1 {
     <!-- Нарядная зимняя ёлочка в шапке -->
     <div class="tree-box" title="С зимними праздниками!">
       <svg class="tree-svg" viewBox="0 0 64 76" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <!-- Подножие-сугробик -->
         <ellipse cx="32" cy="70" rx="23" ry="5.5" fill="#7dd3fc"/>
         <ellipse cx="32" cy="70" rx="17" ry="3.8" fill="#bae6fd"/>
-        <!-- Ствол -->
         <rect x="28" y="58" width="8" height="11" rx="2" fill="#78350f"/>
-        <!-- Нижний ярус хвои -->
         <path d="M8 60 L32 32 L56 60 Z" fill="#15803d"/>
         <path d="M12 60 Q22 55 32 60 Q42 55 52 60" stroke="#bae6fd" stroke-width="3.5" stroke-linecap="round" fill="none"/>
-        <!-- Средний ярус хвои -->
         <path d="M13 44 L32 19 L51 44 Z" fill="#16a34a"/>
         <path d="M16 44 Q24 40 32 44 Q40 40 48 44" stroke="#bae6fd" stroke-width="3" stroke-linecap="round" fill="none"/>
-        <!-- Верхний ярус хвои -->
         <path d="M18 28 L32 7 L46 28 Z" fill="#22c55e"/>
         <path d="M21 28 Q26 25 32 28 Q38 25 43 28" stroke="#e0f2fe" stroke-width="2.5" stroke-linecap="round" fill="none"/>
-        <!-- Звезда на макушке -->
         <polygon class="light-1" points="32,0 34.2,5 39.5,5.5 35.5,9 36.8,14 32,11.2 27.2,14 28.5,9 24.5,5.5 29.8,5" fill="#fbbf24"/>
-        <!-- Елочные шарики -->
         <circle class="light-2" cx="26" cy="23" r="2.6" fill="#d4125c"/>
         <circle class="light-3" cx="37" cy="35" r="3" fill="#fbbf24"/>
         <circle class="light-1" cx="23" cy="39" r="2.8" fill="#38bdf8"/>
@@ -288,8 +300,90 @@ h1 {
   <div id="list"></div>
 </div>
 
-<!-- Панорамные художественные сугробы и заснеженные ели внизу экрана -->
-<div class="snowdrifts-bottom"></div>
+<!-- Левая группа пышных заснеженных елей (фиксирована в углу, не обрезается на ПК и телефонах) -->
+<svg class="corner-trees left" viewBox="0 0 180 130" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="pineGrad" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#1e6b52"/>
+      <stop offset="100%" stop-color="#0f4c3a"/>
+    </linearGradient>
+    <linearGradient id="snowCap" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#ffffff"/>
+      <stop offset="100%" stop-color="#bae6fd"/>
+    </linearGradient>
+  </defs>
+  <!-- Дальняя маленькая ель -->
+  <g transform="translate(95, 38) scale(0.65)" opacity="0.9">
+    <path d="M45 10 L10 55 L80 55 Z" fill="url(#pineGrad)"/>
+    <path d="M45 35 L5 85 L85 85 Z" fill="url(#pineGrad)"/>
+    <path d="M45 60 L0 115 L90 115 Z" fill="url(#pineGrad)"/>
+    <path d="M45 8 L22 38 Q45 45 68 38 Z" fill="url(#snowCap)"/>
+    <path d="M12 55 Q45 64 78 55 Q65 47 45 50 Q25 47 12 55 Z" fill="url(#snowCap)"/>
+    <path d="M7 85 Q45 95 83 85 Q68 76 45 80 Q22 76 7 85 Z" fill="url(#snowCap)"/>
+  </g>
+  <!-- Главная пушистая ель в снегу -->
+  <g transform="translate(8, 5)">
+    <rect x="44" y="102" width="12" height="18" rx="2" fill="#5c2d16"/>
+    <!-- Хвоя -->
+    <path d="M50 5 L15 50 L85 50 Z" fill="url(#pineGrad)"/>
+    <path d="M50 30 L8 80 L92 80 Z" fill="url(#pineGrad)"/>
+    <path d="M50 55 L0 110 L100 110 Z" fill="url(#pineGrad)"/>
+    <!-- Пушистые снежные шапки на лапах -->
+    <path d="M50 3 L26 34 Q38 41 50 36 Q62 41 74 34 Z" fill="url(#snowCap)"/>
+    <path d="M15 50 Q32 58 50 52 Q68 58 85 50 Q74 42 50 45 Q26 42 15 50 Z" fill="url(#snowCap)"/>
+    <path d="M8 80 Q28 90 50 82 Q72 90 92 80 Q78 70 50 74 Q22 70 8 80 Z" fill="url(#snowCap)"/>
+    <path d="M0 110 Q25 120 50 112 Q75 120 100 110 Q85 98 50 103 Q15 98 0 110 Z" fill="url(#snowCap)"/>
+  </g>
+</svg>
+
+<!-- Правая группа пышных заснеженных елей -->
+<svg class="corner-trees right" viewBox="0 0 180 130" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <g transform="translate(95, 42) scale(0.62)" opacity="0.9">
+    <path d="M45 10 L10 55 L80 55 Z" fill="url(#pineGrad)"/>
+    <path d="M45 35 L5 85 L85 85 Z" fill="url(#pineGrad)"/>
+    <path d="M45 60 L0 115 L90 115 Z" fill="url(#pineGrad)"/>
+    <path d="M45 8 L22 38 Q45 45 68 38 Z" fill="url(#snowCap)"/>
+    <path d="M12 55 Q45 64 78 55 Q65 47 45 50 Q25 47 12 55 Z" fill="url(#snowCap)"/>
+    <path d="M7 85 Q45 95 83 85 Q68 76 45 80 Q22 76 7 85 Z" fill="url(#snowCap)"/>
+  </g>
+  <g transform="translate(8, 8)">
+    <rect x="44" y="102" width="12" height="18" rx="2" fill="#5c2d16"/>
+    <path d="M50 5 L15 50 L85 50 Z" fill="url(#pineGrad)"/>
+    <path d="M50 30 L8 80 L92 80 Z" fill="url(#pineGrad)"/>
+    <path d="M50 55 L0 110 L100 110 Z" fill="url(#pineGrad)"/>
+    <path d="M50 3 L26 34 Q38 41 50 36 Q62 41 74 34 Z" fill="url(#snowCap)"/>
+    <path d="M15 50 Q32 58 50 52 Q68 58 85 50 Q74 42 50 45 Q26 42 15 50 Z" fill="url(#snowCap)"/>
+    <path d="M8 80 Q28 90 50 82 Q72 90 92 80 Q78 70 50 74 Q22 70 8 80 Z" fill="url(#snowCap)"/>
+    <path d="M0 110 Q25 120 50 112 Q75 120 100 110 Q85 98 50 103 Q15 98 0 110 Z" fill="url(#snowCap)"/>
+  </g>
+</svg>
+
+<!-- Объёмные 3D-сугробы с мягкими голубыми градиентами по всей ширине экрана -->
+<div class="winter-scene-bottom">
+  <svg class="hills-svg" viewBox="0 0 1440 120" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
+    <defs>
+      <linearGradient id="driftBack" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0%" stop-color="#93c5fd"/>
+        <stop offset="100%" stop-color="#60a5fa"/>
+      </linearGradient>
+      <linearGradient id="driftMid" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0%" stop-color="#e0f2fe"/>
+        <stop offset="100%" stop-color="#7dd3fc"/>
+      </linearGradient>
+      <linearGradient id="driftFront" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0%" stop-color="#ffffff"/>
+        <stop offset="55%" stop-color="#bae6fd"/>
+        <stop offset="100%" stop-color="#7dd3fc"/>
+      </linearGradient>
+    </defs>
+    <!-- Дальний сугроб -->
+    <path d="M0,45 C320,5 580,90 920,38 C1180,5 1320,65 1440,30 L1440,120 L0,120 Z" fill="url(#driftBack)" opacity="0.85"/>
+    <!-- Средний сугроб -->
+    <path d="M0,62 C240,18 540,95 860,48 C1120,12 1290,78 1440,48 L1440,120 L0,120 Z" fill="url(#driftMid)"/>
+    <!-- Передний объёмный сугроб с белоснежной верхушкой и голубой тенью -->
+    <path d="M0,78 C350,35 650,108 1020,60 C1230,35 1360,82 1440,68 L1440,120 L0,120 Z" fill="url(#driftFront)" stroke="#ffffff" stroke-width="2"/>
+  </svg>
+</div>
 
 <script>
 // Генерация снегопада с синими и голубыми оттенками
