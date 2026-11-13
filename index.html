@@ -62,13 +62,13 @@ body {
   position: relative;
 }
 
-/* Реалистичная снежная шапка над блоком логотипа */
+/* Приподнятая снежная шапка над блоком логотипа */
 .header-snow-cap {
   position: absolute;
-  top: -24px;
-  left: 8px;
-  right: 8px;
-  height: 34px;
+  top: -30px; /* Приподняли выше */
+  left: 6px;
+  right: 6px;
+  height: 38px;
   z-index: 4;
   background-size: 100% 100%;
   background-position: bottom center;
@@ -164,13 +164,13 @@ h1 {
   margin-bottom: 4px;
 }
 
-/* Реалистичный сугробик над строкой поиска */
+/* Приподнятый сугробик над строкой поиска */
 .search-snow-cap {
   position: absolute;
-  top: -15px;
-  left: 12px;
-  right: 12px;
-  height: 22px;
+  top: -20px; /* Приподняли выше */
+  left: 10px;
+  right: 10px;
+  height: 26px;
   z-index: 5;
   background-size: 100% 100%;
   background-position: bottom center;
@@ -274,12 +274,12 @@ h1 {
     height: 95px;
   }
   .header-snow-cap {
-    top: -18px;
-    height: 25px;
+    top: -22px;
+    height: 28px;
   }
   .search-snow-cap {
-    top: -12px;
-    height: 17px;
+    top: -15px;
+    height: 20px;
   }
 }
 </style>
@@ -315,11 +315,11 @@ h1 {
 <div class="snowdrifts-bottom" id="snowdrifts"></div>
 
 <script>
-// Автоматическая очистка кэша для обновления исправленных сугробов
-if (localStorage.getItem('vb_fix_v2') !== 'true') {
-  localStorage.removeItem('vb_cap1_v1');
-  localStorage.removeItem('vb_cap2_v1');
-  localStorage.setItem('vb_fix_v2', 'true');
+// Автоматическая очистка кэша для применения приподнятых сугробов
+if (localStorage.getItem('vb_fix_v3') !== 'true') {
+  localStorage.removeItem('vb_cap1_v2');
+  localStorage.removeItem('vb_cap2_v2');
+  localStorage.setItem('vb_fix_v3', 'true');
 }
 
 // Загрузка ёлочки
@@ -365,11 +365,11 @@ if (localStorage.getItem('vb_fix_v2') !== 'true') {
   img.src = 'christmastree.png';
 })();
 
-// Исправленная вырезка верхних сугробов без шахматной сетки снизу
+// Вырезка верхних сугробов
 (function processTopSnowImage() {
   try {
-    const cached1 = localStorage.getItem('vb_cap1_v2');
-    const cached2 = localStorage.getItem('vb_cap2_v2');
+    const cached1 = localStorage.getItem('vb_cap1_v3');
+    const cached2 = localStorage.getItem('vb_cap2_v3');
     if (cached1 && cached2) {
       document.getElementById('headerSnowCap').style.backgroundImage = 'url(' + cached1 + ')';
       document.getElementById('searchSnowCap').style.backgroundImage = 'url(' + cached2 + ')';
@@ -405,7 +405,6 @@ if (localStorage.getItem('vb_fix_v2') !== 'true') {
 
         const isSnow = function(idx) {
           const r = d[idx], g = d[idx + 1], b = d[idx + 2];
-          // Отсекаем нейтрально-серые пиксели сетки (где r, g, b равны или почти равны и темнее 220)
           const max = Math.max(r, g, b);
           const min = Math.min(r, g, b);
           if ((max - min < 12) && r < 215) return false;
@@ -450,7 +449,6 @@ if (localStorage.getItem('vb_fix_v2') !== 'true') {
         return out.toDataURL('image/png');
       }
 
-      // Сдвинули диапазон нижнего сугроба чуть выше, чтобы исключить рамку с сеткой
       const cap1 = extractSnowCap(0.08, 0.45);
       const cap2 = extractSnowCap(0.55, 0.76);
 
@@ -458,8 +456,8 @@ if (localStorage.getItem('vb_fix_v2') !== 'true') {
       if (cap2) document.getElementById('searchSnowCap').style.backgroundImage = 'url(' + cap2 + ')';
 
       try {
-        if (cap1) localStorage.setItem('vb_cap1_v2', cap1);
-        if (cap2) localStorage.setItem('vb_cap2_v2', cap2);
+        if (cap1) localStorage.setItem('vb_cap1_v3', cap1);
+        if (cap2) localStorage.setItem('vb_cap2_v3', cap2);
       } catch (e) {}
     };
     img.onerror = function() {
