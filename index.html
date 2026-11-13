@@ -10,8 +10,8 @@ body {
   font-family: -apple-system, Segoe UI, Roboto, Arial, sans-serif;
   max-width: 800px;
   margin: 0 auto;
-  padding: 16px;
-  background: linear-gradient(180deg, #dceefb 0%, #eff6fc 45%, #f8fbff 100%);
+  padding: 22px 16px 90px 16px;
+  background: linear-gradient(180deg, #cfe8fc 0%, #eaf4fc 45%, #f5faff 100%);
   background-attachment: fixed;
   color: #1e293b;
   position: relative;
@@ -30,8 +30,8 @@ body {
 .snowflake {
   position: fixed;
   top: -10%;
-  color: #ffffff;
-  text-shadow: 0 0 6px rgba(14, 116, 144, 0.35);
+  color: #38bdf8;
+  text-shadow: 0 0 5px rgba(2, 132, 199, 0.45);
   user-select: none;
   pointer-events: none;
   animation: snowfall linear infinite;
@@ -44,39 +44,54 @@ body {
 
 .content-wrap {
   position: relative;
-  z-index: 1;
+  z-index: 2;
 }
 
-/* Зимняя шапка */
+/* Зимняя шапка с сугробами сверху и ёлкой */
 .header {
   display: flex;
   align-items: center;
+  justify-content: space-between;
   gap: 14px;
-  margin-bottom: 10px;
+  margin-bottom: 12px;
   background: #ffffff;
-  padding: 12px 18px;
-  border-radius: 16px;
+  padding: 14px 20px;
+  border-radius: 18px;
   border: 1px solid #e0f2fe;
-  box-shadow: 0 4px 18px rgba(14, 116, 144, 0.08);
+  box-shadow: 0 6px 20px rgba(14, 116, 144, 0.08);
   position: relative;
-  overflow: hidden;
 }
-.header::after {
-  content: "❄️";
+
+/* Снежные шапки (сугробики) на крыше блока */
+.header::before {
+  content: "";
   position: absolute;
-  right: 16px;
-  top: 50%;
-  transform: translateY(-50%);
-  font-size: 26px;
-  opacity: 0.25;
+  top: -9px;
+  left: 18px;
+  right: 18px;
+  height: 14px;
+  background:
+    radial-gradient(ellipse 45px 12px at 12% 100%, #ffffff 95%, transparent 100%),
+    radial-gradient(ellipse 70px 14px at 38% 100%, #ffffff 95%, transparent 100%),
+    radial-gradient(ellipse 55px 11px at 68% 100%, #ffffff 95%, transparent 100%),
+    radial-gradient(ellipse 40px 13px at 88% 100%, #ffffff 95%, transparent 100%);
+  filter: drop-shadow(0 -2px 2px rgba(2, 132, 199, 0.06));
   pointer-events: none;
 }
+
+.header-left {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
 .header img {
   height: 56px;
   width: auto;
   display: block;
   mix-blend-mode: multiply; /* делает белый фон вокруг логотипа прозрачным */
 }
+
 h1 {
   font-size: 21px;
   margin: 0;
@@ -84,18 +99,62 @@ h1 {
   letter-spacing: -0.2px;
 }
 
+/* Ёлочка в шапке */
+.tree-box {
+  width: 52px;
+  height: 60px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.tree-svg {
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+  filter: drop-shadow(0 3px 5px rgba(12, 74, 110, 0.14));
+}
+
+/* Мерцание огоньков на ёлке */
+@keyframes twinkle {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.45; transform: scale(0.85); }
+}
+.light-1 { animation: twinkle 2.2s infinite ease-in-out; transform-origin: center; }
+.light-2 { animation: twinkle 2.8s infinite ease-in-out 0.7s; transform-origin: center; }
+.light-3 { animation: twinkle 2.4s infinite ease-in-out 1.3s; transform-origin: center; }
+
 .upd {
   color: #475569;
   font-size: 13px;
-  margin-bottom: 14px;
+  margin-bottom: 16px;
   padding-left: 4px;
+}
+
+/* Поле поиска со снежным сугробиком */
+.search-wrap {
+  position: relative;
+  margin-bottom: 4px;
+}
+.search-wrap::before {
+  content: "";
+  position: absolute;
+  top: -7px;
+  left: 24px;
+  right: 24px;
+  height: 10px;
+  background:
+    radial-gradient(ellipse 50px 9px at 20% 100%, #ffffff 95%, transparent 100%),
+    radial-gradient(ellipse 65px 10px at 78% 100%, #ffffff 95%, transparent 100%);
+  z-index: 2;
+  pointer-events: none;
 }
 
 #search {
   width: 100%;
   padding: 14px 16px;
   font-size: 17px;
-  background: rgba(255, 255, 255, 0.92);
+  background: rgba(255, 255, 255, 0.95);
   border: 2px solid #bae6fd;
   border-radius: 12px;
   outline: none;
@@ -158,9 +217,25 @@ h1 {
   text-align: center;
   color: #64748b;
   padding: 36px;
-  background: rgba(255, 255, 255, 0.7);
+  background: rgba(255, 255, 255, 0.75);
   border-radius: 12px;
   border: 1px dashed #cbd5e1;
+}
+
+/* Нижние сугробы и ёлочки */
+.snowdrifts-bottom {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 75px;
+  pointer-events: none;
+  z-index: 1;
+}
+.snowdrifts-bottom svg {
+  width: 100%;
+  height: 100%;
+  display: block;
 }
 </style>
 </head>
@@ -170,29 +245,92 @@ h1 {
 
 <div class="content-wrap">
   <div class="header">
-    <img src="logo.png" alt="logo" onerror="this.style.display='none'">
-    <h1>Аптека «Вита Ботаника»</h1>
+    <div class="header-left">
+      <img src="logo.png" alt="logo" onerror="this.style.display='none'">
+      <h1>Аптека «Вита Ботаника»</h1>
+    </div>
+
+    <!-- Нарядная зимняя ёлочка в шапке -->
+    <div class="tree-box" title="С зимними праздниками!">
+      <svg class="tree-svg" viewBox="0 0 64 76" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <!-- Подножие-сугробик -->
+        <ellipse cx="32" cy="70" rx="22" ry="5" fill="#e0f2fe"/>
+        <ellipse cx="32" cy="70" rx="16" ry="3.5" fill="#ffffff"/>
+        <!-- Ствол -->
+        <rect x="28" y="58" width="8" height="11" rx="2" fill="#78350f"/>
+        <!-- Нижний ярус хвои -->
+        <path d="M8 60 L32 32 L56 60 Z" fill="#15803d"/>
+        <path d="M12 60 Q22 55 32 60 Q42 55 52 60" stroke="#ffffff" stroke-width="3.5" stroke-linecap="round" fill="none"/>
+        <!-- Средний ярус хвои -->
+        <path d="M13 44 L32 19 L51 44 Z" fill="#16a34a"/>
+        <path d="M16 44 Q24 40 32 44 Q40 40 48 44" stroke="#ffffff" stroke-width="3" stroke-linecap="round" fill="none"/>
+        <!-- Верхний ярус хвои -->
+        <path d="M18 28 L32 7 L46 28 Z" fill="#22c55e"/>
+        <path d="M21 28 Q26 25 32 28 Q38 25 43 28" stroke="#ffffff" stroke-width="2.5" stroke-linecap="round" fill="none"/>
+        <!-- Звезда на макушке -->
+        <polygon class="light-1" points="32,0 34.2,5 39.5,5.5 35.5,9 36.8,14 32,11.2 27.2,14 28.5,9 24.5,5.5 29.8,5" fill="#fbbf24"/>
+        <!-- Елочные шарики (в фирменных малиновых, золотых и голубых тонах) -->
+        <circle class="light-2" cx="26" cy="23" r="2.6" fill="#d4125c"/>
+        <circle class="light-3" cx="37" cy="35" r="3" fill="#fbbf24"/>
+        <circle class="light-1" cx="23" cy="39" r="2.8" fill="#38bdf8"/>
+        <circle class="light-2" cx="41" cy="52" r="3.2" fill="#d4125c"/>
+        <circle class="light-3" cx="21" cy="53" r="3" fill="#fbbf24"/>
+        <circle class="light-1" cx="32" cy="49" r="2.5" fill="#ffffff"/>
+      </svg>
+    </div>
   </div>
+
   <div class="upd" id="upd">❄️ Загрузка данных…</div>
 
-  <input type="text" id="search" placeholder="🔍 Поиск товара…" oninput="render(this.value)">
+  <div class="search-wrap">
+    <input type="text" id="search" placeholder="🔍 Поиск товара…" oninput="render(this.value)">
+  </div>
   <div class="count" id="count"></div>
   <div id="list"></div>
 </div>
 
+<!-- Панорамные сугробы и заснеженные елочки внизу экрана -->
+<div class="snowdrifts-bottom">
+  <svg viewBox="0 0 1440 120" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
+    <!-- Дальний голубоватый сугроб -->
+    <path d="M0,75 C260,20 520,105 840,55 C1120,15 1300,80 1440,45 L1440,120 L0,120 Z" fill="#dbeafe" opacity="0.85"/>
+    <!-- Средний сугроб -->
+    <path d="M0,55 C190,105 460,25 760,75 C1050,115 1260,30 1440,70 L1440,120 L0,120 Z" fill="#eff6ff" opacity="0.95"/>
+    <!-- Силуэты маленьких ёлочек на сугробах по краям -->
+    <g transform="translate(55, 18)">
+      <polygon points="18,12 4,40 32,40" fill="#15803d"/>
+      <polygon points="18,24 2,56 34,56" fill="#166534"/>
+      <polygon points="18,0 7,22 29,22" fill="#16a34a"/>
+      <path d="M9,22 Q18,18 27,22" stroke="#ffffff" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+      <path d="M6,40 Q18,35 30,40" stroke="#ffffff" stroke-width="3" fill="none" stroke-linecap="round"/>
+    </g>
+    <g transform="translate(1335, 25) scale(0.85)">
+      <polygon points="18,12 4,40 32,40" fill="#15803d"/>
+      <polygon points="18,24 2,56 34,56" fill="#166534"/>
+      <polygon points="18,0 7,22 29,22" fill="#16a34a"/>
+      <path d="M9,22 Q18,18 27,22" stroke="#ffffff" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+      <path d="M6,40 Q18,35 30,40" stroke="#ffffff" stroke-width="3" fill="none" stroke-linecap="round"/>
+    </g>
+    <!-- Передний белоснежный сугроб -->
+    <path d="M0,85 C320,40 620,110 980,65 C1200,38 1350,85 1440,75 L1440,120 L0,120 Z" fill="#ffffff"/>
+  </svg>
+</div>
+
 <script>
-// Генерация легкого снегопада
+// Генерация снегопада с синими и голубыми оттенками
 (function createSnow() {
   const container = document.getElementById('snow');
   const symbols = ['❄', '❅', '❆', '•'];
-  const count = 28;
+  const colors = ['#0284c7', '#0ea5e9', '#38bdf8', '#2563eb'];
+  const count = 32;
   for (let i = 0; i < count; i++) {
     const flake = document.createElement('div');
     flake.className = 'snowflake';
     flake.textContent = symbols[i % symbols.length];
+    flake.style.color = colors[i % colors.length];
     flake.style.left = (Math.random() * 100) + 'vw';
-    flake.style.fontSize = (Math.random() * 12 + 10) + 'px';
-    flake.style.opacity = (Math.random() * 0.55 + 0.25).toFixed(2);
+    flake.style.fontSize = (Math.random() * 13 + 11) + 'px';
+    flake.style.opacity = (Math.random() * 0.45 + 0.45).toFixed(2);
     flake.style.animationDuration = (Math.random() * 10 + 9) + 's';
     flake.style.animationDelay = (Math.random() * 10) + 's';
     container.appendChild(flake);
