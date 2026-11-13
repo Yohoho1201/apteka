@@ -10,7 +10,7 @@ body {
   font-family: -apple-system, Segoe UI, Roboto, Arial, sans-serif;
   max-width: 800px;
   margin: 0 auto;
-  padding: 24px 16px 160px 16px; /* Большой отступ снизу, чтобы текст не заходил на ёлки */
+  padding: 24px 16px 160px 16px; /* Большой отступ снизу, чтобы текст не заходил на заснеженные ели */
   background: linear-gradient(180deg, #d8ecfc 0%, #eef7ff 50%, #f8fbff 100%);
   background-attachment: fixed;
   color: #1e293b;
@@ -89,7 +89,7 @@ body {
   height: 56px;
   width: auto;
   display: block;
-  mix-blend-mode: multiply; /* делает белый фон вокруг логотипа прозрачным */
+  mix-blend-mode: multiply; /* Делает белый фон вокруг логотипа прозрачным */
 }
 
 h1 {
@@ -224,29 +224,28 @@ h1 {
   border: 1px dashed #93c5fd;
 }
 
-/* Нижние художественные сугробы из картинки - КРАСИВЫЙ БЕСШОВНЫЙ ВАРИАНТ */
+/* Зимний пейзаж по нижнему краю */
 .snowdrifts-bottom {
   position: fixed;
   bottom: 0;
   left: 0;
   width: 100%;
-  height: 140px; /* Фиксированная достаточная высота */
+  height: 130px; /* Оптимальная зафиксированная высота */
   pointer-events: none;
   z-index: 3;
   background-image: url('snowdrifts.png');
   background-position: bottom center;
-  background-repeat: no-repeat;
-  background-size: 100% auto; /* Растягивание на 100% ширины с сохранением пропорций по высоте */
+  background-repeat: repeat-x; /* Позволяет панораме повторяться на ультрашироких экранах без искажений */
+  background-size: auto 100%; /* Сохраняет оригинальные пропорции изображения по высоте */
 }
 
-/* Адаптивность для мобильных телефонов (высоту делаем меньше, чтобы елки не перекрывали экран) */
+/* Адаптивность для мобильных телефонов */
 @media (max-width: 600px) {
   body {
-    padding-bottom: 110px; /* уменьшаем поле на телефоне */
+    padding-bottom: 120px; /* Уменьшаем поле для более компактных экранов */
   }
   .snowdrifts-bottom {
-    height: 80px; /* сугробы ниже */
-    background-size: cover; /* на телефоне лучше растягивать по заполнению */
+    height: 90px; /* Пропорционально уменьшаем высоту пейзажа на смартфонах */
   }
 }
 </style>
@@ -301,7 +300,7 @@ h1 {
   <div id="list"></div>
 </div>
 
-<!-- Панорамные художественные сугробы и заснеженные елочки внизу экрана -->
+<!-- Заснеженные ели и сугробы по нижнему краю страницы -->
 <div class="snowdrifts-bottom"></div>
 
 <script>
@@ -331,12 +330,10 @@ fetch('ostatki.txt?v=' + Date.now())
   .then(r => r.arrayBuffer())
   .then(buf => {
     const bytes = new Uint8Array(buf);
-    // 1С v7.7 пишет в Windows-1251 — декодируем сразу
     const text = new TextDecoder('windows-1251').decode(bytes);
 
     goods = parse(text);
 
-    // Ищем строку с датой обновления (если есть)
     let updateTime = 'Дата обновления: не указана';
     const lines = text.split(/\r?\n/);
     for (let l of lines) {
@@ -359,23 +356,18 @@ function parse(text) {
   for (let raw of lines) {
     if (!raw.trim()) continue;
 
-    // Все числа в строке (целые и дробные): 1, 2, 200, 0.5, 1.00000000
     const matches = raw.match(/-?\d+(?:\.\d+)?/g);
     if (!matches || matches.length === 0) continue;
 
-    // Остаток — последнее число в строке
     const num = parseFloat(matches[matches.length - 1]);
     if (isNaN(num)) continue;
 
-    // Название — всё до последнего числа
     const lastNum = matches[matches.length - 1];
     const cutPos = raw.lastIndexOf(lastNum);
     let name = raw.substring(0, cutPos).trim();
 
-    // Если название пустое — пробуем взять всю строку без последнего числа иначе
     if (!name) continue;
 
-    // Отбрасываем служебные строки
     if (name.indexOf('Остатки товаров') !== -1) continue;
     if (name.indexOf('по всем складам') !== -1) continue;
     if (name.indexOf('Итого') !== -1) continue;
@@ -387,7 +379,6 @@ function parse(text) {
   return result;
 }
 
-// Форматирование количества: 0.5 → 0,5 ; 2 → 2
 function fmt(n) {
   const r = Math.round(n * 10) / 10;
   return Number.isInteger(r) ? r.toString() : r.toString().replace('.', ',');
@@ -398,7 +389,6 @@ function render(query) {
   const count = document.getElementById('count');
   query = (query || '').toLowerCase().trim();
 
-  // Показываем только товары с остатком > 0
   let filtered = goods.filter(g => Math.round(g.qty * 10) / 10 > 0);
 
   if (query) {
