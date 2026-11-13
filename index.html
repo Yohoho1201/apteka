@@ -10,7 +10,7 @@ body {
   font-family: -apple-system, Segoe UI, Roboto, Arial, sans-serif;
   max-width: 800px;
   margin: 0 auto;
-  padding: 24px 16px 95px 16px;
+  padding: 24px 16px 140px 16px; /* увеличено нижнее поле под картинку */
   background: linear-gradient(180deg, #d8ecfc 0%, #eef7ff 50%, #f8fbff 100%);
   background-attachment: fixed;
   color: #1e293b;
@@ -47,7 +47,7 @@ body {
   z-index: 2;
 }
 
-/* Зимняя шапка с голубоватыми сугробами сверху и ёлкой */
+/* Зимняя шапка с сугробами сверху и ёлкой */
 .header {
   display: flex;
   align-items: center;
@@ -224,21 +224,17 @@ h1 {
   border: 1px dashed #93c5fd;
 }
 
-/* Нижние голубые сугробы и ёлочки */
+/* Нижние художественные сугробы из картинки */
 .snowdrifts-bottom {
   position: fixed;
   bottom: 0;
   left: 0;
   width: 100%;
-  height: 82px;
+  height: 110px; /* высота нашей панорамы */
   pointer-events: none;
   z-index: 3;
-  filter: drop-shadow(0 -3px 6px rgba(2, 132, 199, 0.12));
-}
-.snowdrifts-bottom svg {
-  width: 100%;
-  height: 100%;
-  display: block;
+  background: url('snowdrifts.png') bottom center no-repeat;
+  background-size: cover; /* чтобы плавно растягивалось на весь экран */
 }
 </style>
 </head>
@@ -256,7 +252,7 @@ h1 {
     <!-- Нарядная зимняя ёлочка в шапке -->
     <div class="tree-box" title="С зимними праздниками!">
       <svg class="tree-svg" viewBox="0 0 64 76" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <!-- Подножие-сугробик (голубоватый) -->
+        <!-- Подножие-сугробик -->
         <ellipse cx="32" cy="70" rx="23" ry="5.5" fill="#7dd3fc"/>
         <ellipse cx="32" cy="70" rx="17" ry="3.8" fill="#bae6fd"/>
         <!-- Ствол -->
@@ -292,32 +288,8 @@ h1 {
   <div id="list"></div>
 </div>
 
-<!-- Панорамные голубоватые сугробы и заснеженные елочки внизу экрана -->
-<div class="snowdrifts-bottom">
-  <svg viewBox="0 0 1440 120" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
-    <!-- Дальний насыщенно-голубой сугроб -->
-    <path d="M0,70 C260,15 520,100 840,50 C1120,10 1300,75 1440,40 L1440,120 L0,120 Z" fill="#7dd3fc" opacity="0.85"/>
-    <!-- Средний голубой сугроб -->
-    <path d="M0,50 C190,100 460,20 760,70 C1050,110 1260,25 1440,65 L1440,120 L0,120 Z" fill="#93c5fd" opacity="0.9"/>
-    <!-- Силуэты маленьких ёлочек на сугробах по краям -->
-    <g transform="translate(55, 16)">
-      <polygon points="18,12 4,40 32,40" fill="#15803d"/>
-      <polygon points="18,24 2,56 34,56" fill="#166534"/>
-      <polygon points="18,0 7,22 29,22" fill="#16a34a"/>
-      <path d="M9,22 Q18,18 27,22" stroke="#bae6fd" stroke-width="2.5" fill="none" stroke-linecap="round"/>
-      <path d="M6,40 Q18,35 30,40" stroke="#bae6fd" stroke-width="3" fill="none" stroke-linecap="round"/>
-    </g>
-    <g transform="translate(1335, 22) scale(0.85)">
-      <polygon points="18,12 4,40 32,40" fill="#15803d"/>
-      <polygon points="18,24 2,56 34,56" fill="#166534"/>
-      <polygon points="18,0 7,22 29,22" fill="#16a34a"/>
-      <path d="M9,22 Q18,18 27,22" stroke="#bae6fd" stroke-width="2.5" fill="none" stroke-linecap="round"/>
-      <path d="M6,40 Q18,35 30,40" stroke="#bae6fd" stroke-width="3" fill="none" stroke-linecap="round"/>
-    </g>
-    <!-- Передний льдисто-голубой сугроб с чёткой кромкой -->
-    <path d="M0,82 C320,38 620,108 980,62 C1200,35 1350,82 1440,72 L1440,120 L0,120 Z" fill="#bae6fd" stroke="#7dd3fc" stroke-width="2"/>
-  </svg>
-</div>
+<!-- Панорамные художественные сугробы и заснеженные ели внизу экрана -->
+<div class="snowdrifts-bottom"></div>
 
 <script>
 // Генерация снегопада с синими и голубыми оттенками
@@ -346,12 +318,10 @@ fetch('ostatki.txt?v=' + Date.now())
   .then(r => r.arrayBuffer())
   .then(buf => {
     const bytes = new Uint8Array(buf);
-    // 1С v7.7 пишет в Windows-1251 — декодируем сразу
     const text = new TextDecoder('windows-1251').decode(bytes);
 
     goods = parse(text);
 
-    // Ищем строку с датой обновления (если есть)
     let updateTime = 'Дата обновления: не указана';
     const lines = text.split(/\r?\n/);
     for (let l of lines) {
@@ -374,23 +344,18 @@ function parse(text) {
   for (let raw of lines) {
     if (!raw.trim()) continue;
 
-    // Все числа в строке (целые и дробные): 1, 2, 200, 0.5, 1.00000000
     const matches = raw.match(/-?\d+(?:\.\d+)?/g);
     if (!matches || matches.length === 0) continue;
 
-    // Остаток — последнее число в строке
     const num = parseFloat(matches[matches.length - 1]);
     if (isNaN(num)) continue;
 
-    // Название — всё до последнего числа
     const lastNum = matches[matches.length - 1];
     const cutPos = raw.lastIndexOf(lastNum);
     let name = raw.substring(0, cutPos).trim();
 
-    // Если название пустое — пробуем взять всю строку без последнего числа иначе
     if (!name) continue;
 
-    // Отбрасываем служебные строки
     if (name.indexOf('Остатки товаров') !== -1) continue;
     if (name.indexOf('по всем складам') !== -1) continue;
     if (name.indexOf('Итого') !== -1) continue;
@@ -402,7 +367,6 @@ function parse(text) {
   return result;
 }
 
-// Форматирование количества: 0.5 → 0,5 ; 2 → 2
 function fmt(n) {
   const r = Math.round(n * 10) / 10;
   return Number.isInteger(r) ? r.toString() : r.toString().replace('.', ',');
@@ -413,7 +377,6 @@ function render(query) {
   const count = document.getElementById('count');
   query = (query || '').toLowerCase().trim();
 
-  // Показываем только товары с остатком > 0
   let filtered = goods.filter(g => Math.round(g.qty * 10) / 10 > 0);
 
   if (query) {
