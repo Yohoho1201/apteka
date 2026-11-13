@@ -10,7 +10,7 @@ body {
   font-family: -apple-system, Segoe UI, Roboto, Arial, sans-serif;
   max-width: 800px;
   margin: 0 auto;
-  padding: 24px 16px 160px 16px; /* Большой отступ снизу, чтобы текст не заходил на заснеженные ели */
+  padding: 24px 16px 160px 16px;
   background: linear-gradient(180deg, #d8ecfc 0%, #eef7ff 50%, #f8fbff 100%);
   background-attachment: fixed;
   color: #1e293b;
@@ -89,7 +89,7 @@ body {
   height: 56px;
   width: auto;
   display: block;
-  mix-blend-mode: multiply; /* Делает белый фон вокруг логотипа прозрачным */
+  mix-blend-mode: multiply;
 }
 
 h1 {
@@ -115,7 +115,6 @@ h1 {
   filter: drop-shadow(0 3px 5px rgba(12, 74, 110, 0.14));
 }
 
-/* Мерцание огоньков на ёлке */
 @keyframes twinkle {
   0%, 100% { opacity: 1; transform: scale(1); }
   50% { opacity: 0.45; transform: scale(0.85); }
@@ -224,28 +223,26 @@ h1 {
   border: 1px dashed #93c5fd;
 }
 
-/* Зимний пейзаж по нижнему краю */
+/* Зимний пейзаж по нижнему краю (заполняется очищенной от сетки картинкой) */
 .snowdrifts-bottom {
   position: fixed;
   bottom: 0;
   left: 0;
   width: 100%;
-  height: 130px; /* Оптимальная зафиксированная высота */
+  height: 140px;
   pointer-events: none;
   z-index: 3;
-  background-image: url('snowdrifts.png');
   background-position: bottom center;
-  background-repeat: repeat-x; /* Позволяет панораме повторяться на ультрашироких экранах без искажений */
-  background-size: auto 100%; /* Сохраняет оригинальные пропорции изображения по высоте */
+  background-repeat: repeat-x;
+  background-size: auto 100%;
 }
 
-/* Адаптивность для мобильных телефонов */
 @media (max-width: 600px) {
   body {
-    padding-bottom: 120px; /* Уменьшаем поле для более компактных экранов */
+    padding-bottom: 120px;
   }
   .snowdrifts-bottom {
-    height: 90px; /* Пропорционально уменьшаем высоту пейзажа на смартфонах */
+    height: 95px;
   }
 }
 </style>
@@ -264,23 +261,16 @@ h1 {
     <!-- Нарядная зимняя ёлочка в шапке -->
     <div class="tree-box" title="С зимними праздниками!">
       <svg class="tree-svg" viewBox="0 0 64 76" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <!-- Подножие-сугробик (голубоватый) -->
         <ellipse cx="32" cy="70" rx="23" ry="5.5" fill="#7dd3fc"/>
         <ellipse cx="32" cy="70" rx="17" ry="3.8" fill="#bae6fd"/>
-        <!-- Ствол -->
         <rect x="28" y="58" width="8" height="11" rx="2" fill="#78350f"/>
-        <!-- Нижний ярус хвои -->
         <path d="M8 60 L32 32 L56 60 Z" fill="#15803d"/>
         <path d="M12 60 Q22 55 32 60 Q42 55 52 60" stroke="#bae6fd" stroke-width="3.5" stroke-linecap="round" fill="none"/>
-        <!-- Средний ярус хвои -->
         <path d="M13 44 L32 19 L51 44 Z" fill="#16a34a"/>
         <path d="M16 44 Q24 40 32 44 Q40 40 48 44" stroke="#bae6fd" stroke-width="3" stroke-linecap="round" fill="none"/>
-        <!-- Верхний ярус хвои -->
         <path d="M18 28 L32 7 L46 28 Z" fill="#22c55e"/>
         <path d="M21 28 Q26 25 32 28 Q38 25 43 28" stroke="#e0f2fe" stroke-width="2.5" stroke-linecap="round" fill="none"/>
-        <!-- Звезда на макушке -->
         <polygon class="light-1" points="32,0 34.2,5 39.5,5.5 35.5,9 36.8,14 32,11.2 27.2,14 28.5,9 24.5,5.5 29.8,5" fill="#fbbf24"/>
-        <!-- Елочные шарики -->
         <circle class="light-2" cx="26" cy="23" r="2.6" fill="#d4125c"/>
         <circle class="light-3" cx="37" cy="35" r="3" fill="#fbbf24"/>
         <circle class="light-1" cx="23" cy="39" r="2.8" fill="#38bdf8"/>
@@ -301,9 +291,81 @@ h1 {
 </div>
 
 <!-- Заснеженные ели и сугробы по нижнему краю страницы -->
-<div class="snowdrifts-bottom"></div>
+<div class="snowdrifts-bottom" id="snowdrifts"></div>
 
 <script>
+// Автоматическое удаление серо-белой шахматной сетки с картинки snowdrifts.png
+(function cleanAndRenderSnowdrifts() {
+  const img = new Image();
+  img.crossOrigin = 'anonymous';
+  img.onload = function() {
+    const w = img.width;
+    const h = img.height;
+    const canvas = document.createElement('canvas');
+    canvas.width = w;
+    canvas.height = h;
+    const ctx = canvas.getContext('2d');
+    ctx.drawImage(img, 0, 0);
+
+    const imgData = ctx.getImageData(0, 0, w, h);
+    const d = imgData.data;
+
+    // 1. Отрезаем нижнюю полосу сетки, если она есть (находим нижний край голубых сугробов)
+    let bottomContentY = h - 1;
+    for (let y = h - 1; y >= Math.floor(h * 0.5); y--) {
+      let bluePixelsInRow = 0;
+      for (let x = 0; x < w; x += 4) {
+        const idx = (y * w + x) * 4;
+        const r = d[idx], g = d[idx + 1], b = d[idx + 2];
+        // У сугробов всегда есть заметный голубой оттенок (b > r + 6)
+        if (b - r > 6 || (r > 240 && g > 246 && b > 252)) {
+          bluePixelsInRow++;
+        }
+      }
+      if (bluePixelsInRow > (w / 4) * 0.35) {
+        bottomContentY = y;
+        break;
+      }
+    }
+
+    // 2. Идём сверху вниз по каждому столбцу и удаляем нейтрально-серые/белые пиксели сетки до начала елей и сугробов
+    for (let x = 0; x < w; x++) {
+      let hitSnowOrTree = false;
+      for (let y = 0; y <= bottomContentY; y++) {
+        const idx = (y * w + x) * 4;
+        const r = d[idx], g = d[idx + 1], b = d[idx + 2];
+        const max = Math.max(r, g, b);
+        const min = Math.min(r, g, b);
+        const sat = max - min; // насыщенность цвета
+
+        if (!hitSnowOrTree) {
+          // Пиксели шахматной сетки абсолютно нейтральны (серые или белые: sat <= 10, b - r <= 6)
+          // Как только встречаем хвою или голубоватый контур снега (b - r > 7 или sat > 12) — останавливаем удаление в этом столбце
+          if (b - r > 8 || g - r > 8 || sat > 12) {
+            hitSnowOrTree = true;
+          } else {
+            d[idx + 3] = 0; // делаем пиксель сетки полностью прозрачным
+          }
+        } else {
+          // Даже чуть ниже верхушек елей убираем чисто серые квадратики сетки между ветками
+          if (sat <= 5 && r >= 175 && r <= 242 && b - r <= 4) {
+            d[idx + 3] = 0;
+          }
+        }
+      }
+    }
+
+    // Обрезаем холст ровно по нижнему краю сугробов
+    const finalCanvas = document.createElement('canvas');
+    finalCanvas.width = w;
+    finalCanvas.height = bottomContentY + 1;
+    finalCanvas.getContext('2d').putImageData(imgData, 0, 0);
+
+    document.getElementById('snowdrifts').style.backgroundImage = 'url(' + finalCanvas.toDataURL('image/png') + ')';
+  };
+  img.src = 'snowdrifts.png?v=' + Date.now();
+})();
+
 // Генерация снегопада с синими и голубыми оттенками
 (function createSnow() {
   const container = document.getElementById('snow');
