@@ -10,7 +10,7 @@ body {
   font-family: -apple-system, Segoe UI, Roboto, Arial, sans-serif;
   max-width: 800px;
   margin: 0 auto;
-  padding: 32px 16px 160px 16px; /* Увеличили верхнее поле под пышные сугробы */
+  padding: 38px 16px 160px 16px;
   background: linear-gradient(180deg, #d8ecfc 0%, #eef7ff 50%, #f8fbff 100%);
   background-attachment: fixed;
   color: #1e293b;
@@ -55,27 +55,25 @@ body {
   gap: 14px;
   margin-bottom: 12px;
   background: #ffffff;
-  padding: 14px 20px;
+  padding: 16px 20px 14px 20px;
   border-radius: 18px;
   border: 1px solid #bae6fd;
   box-shadow: 0 6px 20px rgba(14, 116, 144, 0.08);
   position: relative;
 }
 
-/* Реалистичные сугробы над окном логотипа (картинка) */
-.header::before {
-  content: "";
+/* Реалистичная снежная шапка над блоком логотипа */
+.header-snow-cap {
   position: absolute;
-  top: -16px; /* Нависает на рамку */
-  left: 12px;
-  right: 12px;
-  height: 24px;
+  top: -24px;
+  left: 8px;
+  right: 8px;
+  height: 34px;
   z-index: 4;
-  background-image: var(--top-snow-img, none);
-  background-size: 100% 200%; /* Берем только верхнюю половину спрайта */
-  background-position: top center;
+  background-size: 100% 100%;
+  background-position: bottom center;
   background-repeat: no-repeat;
-  filter: drop-shadow(0 -1px 2px rgba(2, 132, 199, 0.15));
+  filter: drop-shadow(0 2px 3px rgba(2, 132, 199, 0.16));
   pointer-events: none;
 }
 
@@ -126,7 +124,7 @@ h1 {
 .upd {
   color: #475569;
   font-size: 13px;
-  margin-bottom: 22px;
+  margin-bottom: 24px;
   padding-left: 4px;
 }
 
@@ -136,20 +134,18 @@ h1 {
   margin-bottom: 4px;
 }
 
-/* Реалистичные сугробики над строкой поиска (картинка) */
-.search-wrap::before {
-  content: "";
+/* Реалистичный сугробик над строкой поиска */
+.search-snow-cap {
   position: absolute;
-  top: -11px; /* Нависает на строку поиска */
-  left: 20px;
-  right: 20px;
-  height: 14px;
+  top: -15px;
+  left: 12px;
+  right: 12px;
+  height: 22px;
   z-index: 5;
-  background-image: var(--search-snow-img, none);
-  background-size: 100% 200%; /* Берем только нижнюю половину спрайта */
+  background-size: 100% 100%;
   background-position: bottom center;
   background-repeat: no-repeat;
-  filter: drop-shadow(0 -1px 2px rgba(2, 132, 199, 0.12));
+  filter: drop-shadow(0 2px 2px rgba(2, 132, 199, 0.14));
   pointer-events: none;
 }
 
@@ -241,18 +237,19 @@ h1 {
 
 @media (max-width: 600px) {
   body {
+    padding-top: 30px;
     padding-bottom: 120px;
   }
   .snowdrifts-bottom {
     height: 95px;
   }
-  .header::before {
-    top: -12px;
-    height: 18px;
+  .header-snow-cap {
+    top: -18px;
+    height: 25px;
   }
-  .search-wrap::before {
-    top: -8px;
-    height: 10px;
+  .search-snow-cap {
+    top: -12px;
+    height: 17px;
   }
 }
 </style>
@@ -263,6 +260,9 @@ h1 {
 
 <div class="content-wrap">
   <div class="header">
+    <!-- Снежная шапка над логотипом и названием -->
+    <div class="header-snow-cap" id="headerSnowCap"></div>
+
     <div class="header-left">
       <img src="logo.png" alt="logo" onerror="this.style.display='none'">
       <h1>Аптека «Вита Ботаника»</h1>
@@ -294,6 +294,8 @@ h1 {
   <div class="upd" id="upd">❄️ Загрузка данных…</div>
 
   <div class="search-wrap">
+    <!-- Снежная шапка над строкой поиска -->
+    <div class="search-snow-cap" id="searchSnowCap"></div>
     <input type="text" id="search" placeholder="🔍 Поиск товара…" oninput="render(this.value)">
   </div>
   <div class="count" id="count"></div>
@@ -304,49 +306,103 @@ h1 {
 <div class="snowdrifts-bottom" id="snowdrifts"></div>
 
 <script>
-// Автоматическое удаление серо-белой шахматной сетки с верхней картинки top-snow.png
-(function cleanAndSplitTopSnow() {
-  const img = new Image();
-  img.crossOrigin = 'anonymous';
-  img.onload = function() {
-    const w = img.width;
-    const h = img.height;
-    const canvas = document.createElement('canvas');
-    canvas.width = w;
-    canvas.height = h;
-    const ctx = canvas.getContext('2d');
-    ctx.drawImage(img, 0, 0);
+// Вырезание и очистка от сетки двух верхних сугробов из top-snow.png
+(function processTopSnowImage() {
+  const filesToTry = ['top-snow.png', 'top-snow.jpg', 'top-snow.png.jpg'];
+  let attempt = 0;
 
-    const imgData = ctx.getImageData(0, 0, w, h);
-    const d = imgData.data;
+  function loadNext() {
+    if (attempt >= filesToTry.length) return;
+    const img = new Image();
+    img.crossOrigin = 'anonymous';
+    img.onload = function() {
+      const w = img.width;
+      const h = img.height;
 
-    // Очищаем «шахматку»
-    for (let x = 0; x < w; x++) {
-      for (let y = 0; y < h; y++) {
-        const idx = (y * w + x) * 4;
-        const r = d[idx], g = d[idx + 1], b = d[idx + 2];
-        const max = Math.max(r, g, b);
-        const min = Math.min(r, g, b);
-        const sat = max - min; // Насыщенность
+      // Функция вырезает одну снежную шапку в заданном диапазоне Y и убирает вокруг неё серую сетку
+      function extractSnowCap(yStartPct, yEndPct) {
+        const y0 = Math.floor(h * yStartPct);
+        const y1 = Math.floor(h * yEndPct);
+        const sliceH = y1 - y0;
 
-        // Удаляем нейтрально-серые и белые пиксели узора (sat <= 10, b - r <= 6)
-        if (sat <= 10 && b - r <= 6) {
-          d[idx + 3] = 0;
+        const c = document.createElement('canvas');
+        c.width = w;
+        c.height = sliceH;
+        const ctx = c.getContext('2d');
+        ctx.drawImage(img, 0, y0, w, sliceH, 0, 0, w, sliceH);
+
+        const imgData = ctx.getImageData(0, 0, w, sliceH);
+        const d = imgData.data;
+
+        const isSnow = function(idx) {
+          const r = d[idx], g = d[idx + 1], b = d[idx + 2];
+          // Голубые оттенки снега или ярко-белый снег (серая сетка в этой картинке имеет яркость <= 165)
+          return (b - r >= 6) || (r > 185 && g > 190 && b > 195);
+        };
+
+        // Очищаем сетку сверху вниз и снизу вверх по каждому столбцу, сохраняя белый снег внутри сугроба
+        for (let x = 0; x < w; x++) {
+          let topEdge = 0;
+          while (topEdge < sliceH && !isSnow((topEdge * w + x) * 4)) {
+            d[(topEdge * w + x) * 4 + 3] = 0;
+            topEdge++;
+          }
+          let botEdge = sliceH - 1;
+          while (botEdge >= topEdge && !isSnow((botEdge * w + x) * 4)) {
+            d[(botEdge * w + x) * 4 + 3] = 0;
+            botEdge--;
+          }
         }
+
+        ctx.putImageData(imgData, 0, 0);
+
+        // Находим точные границы сугроба без пустых полей
+        let minX = w, maxX = 0, minY = sliceH, maxY = 0;
+        for (let y = 0; y < sliceH; y++) {
+          for (let x = 0; x < w; x++) {
+            if (d[(y * w + x) * 4 + 3] > 0) {
+              if (x < minX) minX = x;
+              if (x > maxX) maxX = x;
+              if (y < minY) minY = y;
+              if (y > maxY) maxY = y;
+            }
+          }
+        }
+
+        if (maxX <= minX || maxY <= minY) return null;
+
+        const cropW = maxX - minX + 1;
+        const cropH = maxY - minY + 1;
+        const out = document.createElement('canvas');
+        out.width = cropW;
+        out.height = cropH;
+        out.getContext('2d').drawImage(c, minX, minY, cropW, cropH, 0, 0, cropW, cropH);
+        return out.toDataURL('image/png');
       }
-    }
 
-    ctx.putImageData(imgData, 0, 0);
-    const cleanedImgSrc = canvas.toDataURL('image/png');
+      // 1. Верхний большой сугроб (для шапки с логотипом) расположен между 8% и 50% высоты
+      const cap1 = extractSnowCap(0.08, 0.50);
+      if (cap1) {
+        document.getElementById('headerSnowCap').style.backgroundImage = 'url(' + cap1 + ')';
+      }
 
-    // Передаем очищенное бесшовное изображение в CSS-стили сайта
-    document.documentElement.style.setProperty('--top-snow-img', 'url(' + cleanedImgSrc + ')');
-    document.documentElement.style.setProperty('--search-snow-img', 'url(' + cleanedImgSrc + ')');
-  };
-  img.src = 'top-snow.png?v=' + Date.now();
+      // 2. Нижний длинный сугроб (для строки поиска) расположен между 60% и 83% высоты (отсекаем стеклянную рамку ниже 83%)
+      const cap2 = extractSnowCap(0.60, 0.83);
+      if (cap2) {
+        document.getElementById('searchSnowCap').style.backgroundImage = 'url(' + cap2 + ')';
+      }
+    };
+    img.onerror = function() {
+      attempt++;
+      loadNext();
+    };
+    img.src = filesToTry[attempt] + '?v=' + Date.now();
+  }
+
+  loadNext();
 })();
 
-// Автоматическое удаление серо-белой шахматной сетки с картинки snowdrifts.png
+// Автоматическое удаление серо-белой шахматной сетки с нижней картинки snowdrifts.png
 (function cleanAndRenderSnowdrifts() {
   const img = new Image();
   img.crossOrigin = 'anonymous';
