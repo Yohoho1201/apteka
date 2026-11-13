@@ -260,7 +260,6 @@ h1 {
 
 <div class="content-wrap">
   <div class="header">
-    <!-- Снежная шапка над логотипом и названием -->
     <div class="header-snow-cap" id="headerSnowCap"></div>
 
     <div class="header-left">
@@ -268,7 +267,6 @@ h1 {
       <h1>Аптека «Вита Ботаника»</h1>
     </div>
 
-    <!-- Нарядная зимняя ёлочка в шапке -->
     <div class="tree-box" title="С зимними праздниками!">
       <svg class="tree-svg" viewBox="0 0 64 76" fill="none" xmlns="http://www.w3.org/2000/svg">
         <ellipse cx="32" cy="70" rx="23" ry="5.5" fill="#7dd3fc"/>
@@ -294,7 +292,6 @@ h1 {
   <div class="upd" id="upd">❄️ Загрузка данных…</div>
 
   <div class="search-wrap">
-    <!-- Снежная шапка над строкой поиска -->
     <div class="search-snow-cap" id="searchSnowCap"></div>
     <input type="text" id="search" placeholder="🔍 Поиск товара…" oninput="render(this.value)">
   </div>
@@ -302,12 +299,21 @@ h1 {
   <div id="list"></div>
 </div>
 
-<!-- Заснеженные ели и сугробы по нижнему краю страницы -->
 <div class="snowdrifts-bottom" id="snowdrifts"></div>
 
 <script>
-// Вырезание и очистка от сетки двух верхних сугробов из top-snow.png
+// 1. Быстрая загрузка верхних сугробов с кэшированием в localStorage и уменьшением разрешения
 (function processTopSnowImage() {
+  try {
+    const cached1 = localStorage.getItem('vb_cap1_v1');
+    const cached2 = localStorage.getItem('vb_cap2_v1');
+    if (cached1 && cached2) {
+      document.getElementById('headerSnowCap').style.backgroundImage = 'url(' + cached1 + ')';
+      document.getElementById('searchSnowCap').style.backgroundImage = 'url(' + cached2 + ')';
+      return; // Мгновенная отрисовка из памяти браузера!
+    }
+  } catch (e) {}
+
   const filesToTry = ['top-snow.png', 'top-snow.jpg', 'top-snow.png.jpg'];
   let attempt = 0;
 
@@ -316,10 +322,11 @@ h1 {
     const img = new Image();
     img.crossOrigin = 'anonymous';
     img.onload = function() {
-      const w = img.width;
-      const h = img.height;
+      // Уменьшаем размер в 2 раза перед обработкой — в 4 раза быстрее без потери качества
+      const scale = Math.min(1, 800 / img.width);
+      const w = Math.round(img.width * scale);
+      const h = Math.round(img.height * scale);
 
-      // Функция вырезает одну снежную шапку в заданном диапазоне Y и убирает вокруг неё серую сетку
       function extractSnowCap(yStartPct, yEndPct) {
         const y0 = Math.floor(h * yStartPct);
         const y1 = Math.floor(h * yEndPct);
@@ -329,18 +336,16 @@ h1 {
         c.width = w;
         c.height = sliceH;
         const ctx = c.getContext('2d');
-        ctx.drawImage(img, 0, y0, w, sliceH, 0, 0, w, sliceH);
+        ctx.drawImage(img, 0, Math.floor(img.height * yStartPct), img.width, Math.floor(img.height * (yEndPct - yStartPct)), 0, 0, w, sliceH);
 
         const imgData = ctx.getImageData(0, 0, w, sliceH);
         const d = imgData.data;
 
         const isSnow = function(idx) {
           const r = d[idx], g = d[idx + 1], b = d[idx + 2];
-          // Голубые оттенки снега или ярко-белый снег (серая сетка в этой картинке имеет яркость <= 165)
           return (b - r >= 6) || (r > 185 && g > 190 && b > 195);
         };
 
-        // Очищаем сетку сверху вниз и снизу вверх по каждому столбцу, сохраняя белый снег внутри сугроба
         for (let x = 0; x < w; x++) {
           let topEdge = 0;
           while (topEdge < sliceH && !isSnow((topEdge * w + x) * 4)) {
@@ -356,7 +361,6 @@ h1 {
 
         ctx.putImageData(imgData, 0, 0);
 
-        // Находим точные границы сугроба без пустых полей
         let minX = w, maxX = 0, minY = sliceH, maxY = 0;
         for (let y = 0; y < sliceH; y++) {
           for (let x = 0; x < w; x++) {
@@ -380,40 +384,49 @@ h1 {
         return out.toDataURL('image/png');
       }
 
-      // 1. Верхний большой сугроб (для шапки с логотипом) расположен между 8% и 50% высоты
       const cap1 = extractSnowCap(0.08, 0.50);
-      if (cap1) {
-        document.getElementById('headerSnowCap').style.backgroundImage = 'url(' + cap1 + ')';
-      }
-
-      // 2. Нижний длинный сугроб (для строки поиска) расположен между 60% и 83% высоты (отсекаем стеклянную рамку ниже 83%)
       const cap2 = extractSnowCap(0.60, 0.83);
-      if (cap2) {
-        document.getElementById('searchSnowCap').style.backgroundImage = 'url(' + cap2 + ')';
-      }
+
+      if (cap1) document.getElementById('headerSnowCap').style.backgroundImage = 'url(' + cap1 + ')';
+      if (cap2) document.getElementById('searchSnowCap').style.backgroundImage = 'url(' + cap2 + ')';
+
+      try {
+        if (cap1) localStorage.setItem('vb_cap1_v1', cap1);
+        if (cap2) localStorage.setItem('vb_cap2_v1', cap2);
+      } catch (e) {}
     };
     img.onerror = function() {
       attempt++;
       loadNext();
     };
-    img.src = filesToTry[attempt] + '?v=' + Date.now();
+    img.src = filesToTry[attempt]; // Без ?v=Date.now(), чтобы браузер кэшировал файл
   }
 
   loadNext();
 })();
 
-// Автоматическое удаление серо-белой шахматной сетки с нижней картинки snowdrifts.png
+// 2. Быстрая загрузка нижних сугробов с кэшированием в localStorage
 (function cleanAndRenderSnowdrifts() {
+  try {
+    const cachedBottom = localStorage.getItem('vb_bottom_snow_v1');
+    if (cachedBottom) {
+      document.getElementById('snowdrifts').style.backgroundImage = 'url(' + cachedBottom + ')';
+      return; // Мгновенная отрисовка из памяти браузера!
+    }
+  } catch (e) {}
+
   const img = new Image();
   img.crossOrigin = 'anonymous';
   img.onload = function() {
-    const w = img.width;
-    const h = img.height;
+    // Оптимизируем размер для быстрой обработки
+    const scale = Math.min(1, 1000 / img.width);
+    const w = Math.round(img.width * scale);
+    const h = Math.round(img.height * scale);
     const canvas = document.createElement('canvas');
     canvas.width = w;
     canvas.height = h;
     const ctx = canvas.getContext('2d');
-    ctx.drawImage(img, 0, 0);
+    ctx.drawImage(img, 0, 0, w, h);
 
     const imgData = ctx.getImageData(0, 0, w, h);
     const d = imgData.data;
@@ -462,12 +475,17 @@ h1 {
     finalCanvas.height = bottomContentY + 1;
     finalCanvas.getContext('2d').putImageData(imgData, 0, 0);
 
-    document.getElementById('snowdrifts').style.backgroundImage = 'url(' + finalCanvas.toDataURL('image/png') + ')';
+    const dataUrl = finalCanvas.toDataURL('image/png');
+    document.getElementById('snowdrifts').style.backgroundImage = 'url(' + dataUrl + ')';
+
+    try {
+      localStorage.setItem('vb_bottom_snow_v1', dataUrl);
+    } catch (e) {}
   };
-  img.src = 'snowdrifts.png?v=' + Date.now();
+  img.src = 'snowdrifts.png'; // Без ?v=Date.now(), чтобы браузер кэшировал файл
 })();
 
-// Генерация снегопада с синими и голубыми оттенками
+// Генерация снегопада
 (function createSnow() {
   const container = document.getElementById('snow');
   const symbols = ['❄', '❅', '❆', '•'];
@@ -489,6 +507,7 @@ h1 {
 
 let goods = [];
 
+// У прайса оставляем ?v=Date.now(), чтобы остатки всегда загружались самые свежие
 fetch('ostatki.txt?v=' + Date.now())
   .then(r => r.arrayBuffer())
   .then(buf => {
